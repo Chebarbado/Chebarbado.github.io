@@ -90,6 +90,57 @@ window.RESUME_EN = {
     }
   ],
 
+  gymchess: {
+    kicker: 'Own product · Android · Kotlin · Jetpack Compose',
+    tagline: 'A pull-up ladder with a chess clock',
+    lead: 'A promising game app built on a social sports mechanic. A workout becomes a turn-based duel: 2–4 people, one phone, a clock for each. Your clock only runs on your turn, so rest is a resource you pay for with time.',
+    repoLabel: 'Code on GitHub',
+    comic: [
+      { bubble: 'Ladder to 10, ten minutes each. Go!', caption: 'Two people at the bar and one phone. Each has their own chess clock.' },
+      { bubble: 'Your clock is ticking!', caption: 'Your turn — your time runs. Finish the set, pass the turn. While your rival works, you rest for free.' },
+      { bubble: 'I need a break… but it costs time', caption: 'The ladder grows: 1, 2, 3… Every second of rest on your turn eats your reserve. That is the tactics.' },
+      { bubble: 'Flag fell!', caption: 'Out of time — you are out. The winner completes the ladder with the most time left.' }
+    ],
+    counting: {
+      title: 'How pull-ups are counted',
+      now: {
+        badge: 'Today',
+        title: 'Your rival is the referee',
+        text: 'The phone lies nearby. Finish your set, tap “Pass turn”, and your rival’s clock starts. Rep quality is policed by the people standing next to you — that is the social mechanic.',
+        button: 'Pass turn'
+      },
+      next: {
+        badge: 'Concept · not in the code yet',
+        title: 'Camera auto-counting',
+        text: 'A phone on a tripod watches the player; a pose-estimation model returns key points: wrists, elbows, shoulders, chin. A rep counts only when the chin rises above the bar and the arms then fully extend. Fall short and it does not count.',
+        labels: {
+          bar: 'bar line', angle: 'elbow angle', up: 'UP', down: 'DOWN', reps: 'reps',
+          signal: 'chin height', high: 'threshold: above the bar', low: 'threshold: arms straight',
+          ok: '+1 counted', miss: 'not counted', rule: 'DOWN → UP → DOWN = +1'
+        }
+      }
+    },
+    facts: [
+      { text: '2–4', label: 'players on one device' },
+      { value: 4, label: 'ladder types' },
+      { value: 2, label: 'exercises: pull-ups and dips' },
+      { value: 50, label: 'unit tests for the engine and screens' }
+    ],
+    laddersTitle: 'Ladder types',
+    ladders: [
+      { name: 'Fast', pattern: '1-2-3…', steps: [1, 2, 3, 4, 5, 6, 7], note: 'shared: players alternate steps' },
+      { name: 'Slow', pattern: '1-1-2-2…', steps: [1, 1, 2, 2, 3, 3, 4], note: 'each climbs their own' },
+      { name: 'Up only', pattern: '1…N', steps: [1, 2, 3, 4, 5, 6, 7], note: 'each climbs their own' },
+      { name: 'Up and down', pattern: '1…N…1', steps: [1, 2, 3, 4, 3, 2, 1], note: 'each climbs their own' }
+    ],
+    flowTitle: 'Player journey',
+    flow: ['Setup', 'Players', 'Game', 'Results', 'History'],
+    stackTitle: 'Under the hood',
+    stack: ['Kotlin', 'Jetpack Compose', 'Material 3', 'Navigation Compose', 'DataStore', 'MVVM', 'Pure domain layer', 'Coroutines', 'Sound and vibration on timeout', 'History: 50 games'],
+    potentialTitle: 'Where it can grow',
+    potential: ['Online duels and rating', 'Challenges for friends and teams', 'More exercises', 'Progress statistics']
+  },
+
   other: [
     { title: 'Android and iOS', text: 'Built Android and iOS apps end to end — from development to publishing on Google Play and the App Store.' },
     { title: '3D and shaders', text: 'Built 3D shader pipelines in C++ and GLSL (game engine).' },

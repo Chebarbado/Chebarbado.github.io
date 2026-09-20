@@ -294,6 +294,194 @@
     if (safeHref(R.sourceUrl)) { src.href = R.sourceUrl; src.hidden = false; }
   }
 
+  /* ---------- GymChess: кадры комикса и инфографика ----------
+     Кадры нарисованы кодом (SVG 320×230): линии наследуют цвет игрока (.p1 — акцент, .p2 — чернила),
+     поэтому комикс сам перекрашивается в тёмной теме. Подписи и реплики приходят из data.js */
+  function gcLine(x1, y1, x2, y2, cls) {
+    return '<line' + (cls ? ' class="' + cls + '"' : '') + ' x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+  }
+  // Человечек: голова в (x, y), ступни на y + 90. pose: stand | win
+  function gcPerson(cls, x, y, pose) {
+    var arms = pose === 'win'
+      ? gcLine(x, y + 22, x - 21, y - 8) + gcLine(x, y + 22, x + 21, y - 8)
+      : gcLine(x, y + 22, x - 15, y + 50) + gcLine(x, y + 22, x + 15, y + 50);
+    return '<g class="' + cls + '"><circle cx="' + x + '" cy="' + y + '" r="11"/>' + gcLine(x, y + 11, x, y + 54) +
+      gcLine(x, y + 54, x - 13, y + 90) + gcLine(x, y + 54, x + 13, y + 90) + arms + '</g>';
+  }
+  function gcBar(x1, x2, y) {
+    return '<path class="p2" d="M' + x1 + ' 206V' + y + 'M' + x2 + ' 206V' + y + 'M' + (x1 - 12) + ' ' + y + 'H' + (x2 + 12) + '"/>';
+  }
+  function gcClock(cls, x, y, text, tick) {
+    return '<g class="' + cls + '"><rect x="' + x + '" y="' + y + '" width="92" height="36" rx="9"/>' +
+      '<text class="t"' + (tick ? ' data-tick="' + tick + '"' : '') + ' x="' + (x + 46) + '" y="' + (y + 26) + '" text-anchor="middle">' + text + '</text></g>';
+  }
+  var GC_GROUND = '<line class="soft" x1="8" y1="206" x2="312" y2="206"/>';
+
+  function gcPanels() {
+    var steps = '';
+    for (var i = 1; i <= 7; i++) {
+      steps += '<rect class="gc-fill gc-step' + (i === 7 ? ' is-now' : '') + '" x="' + (168 + (i - 1) * 19) + '" y="' + (206 - i * 15) + '" width="13" height="' + (i * 15) + '" rx="3"/>';
+    }
+    return [
+      // 1. Двое у турника, телефон с двумя часами
+      GC_GROUND + gcBar(112, 208, 70) + gcPerson('p1', 56, 116, 'stand') + gcPerson('p2', 264, 116, 'stand') +
+        '<g class="p2"><rect x="131" y="134" width="58" height="72" rx="9"/>' + gcLine(139, 170, 181, 170, 'soft') + '</g>' +
+        '<text class="t t--sm p1" x="160" y="160" text-anchor="middle">10:00</text><text class="t t--sm p2" x="160" y="192" text-anchor="middle">10:00</text>',
+
+      // 2. Игрок 1 подтягивается — идут его часы; у соперника часы стоят
+      GC_GROUND + gcBar(96, 196, 34) +
+        '<g class="p1 gc-hang"><g class="gc-hang__body"><circle cx="146" cy="68" r="11"/>' + gcLine(146, 79, 146, 122) + gcLine(146, 122, 136, 156) + gcLine(146, 122, 158, 152) + '</g>' +
+        gcLine(132, 34, 146, 90, 'gc-hang__arm') + gcLine(160, 34, 146, 90, 'gc-hang__arm') + '</g>' +
+        gcPerson('p2', 268, 116, 'stand') + gcClock('p1', 10, 118, '09:41', '581:560') +
+        '<text class="t t--sm soft" x="56" y="176" text-anchor="middle">10:00</text>',
+
+      // 3. Лесенка выросла, игрок устал, время тает
+      GC_GROUND + '<g class="p1"><circle cx="112" cy="116" r="11"/>' + gcLine(90, 160, 106, 126) + gcLine(90, 160, 80, 206) + gcLine(90, 160, 104, 206) +
+        gcLine(104, 132, 96, 176) + gcLine(104, 132, 112, 178) + '</g>' +
+        '<path class="gc-fill gc-sweat" d="M134 92q5 8 0 12q-5-4 0-12z"/><path class="gc-fill gc-sweat" d="M146 112q5 8 0 12q-5-4 0-12z"/><path class="gc-fill gc-sweat" d="M128 124q5 8 0 12q-5-4 0-12z"/>' +
+        steps + '<text class="t t--sm p1" x="289" y="94" text-anchor="middle">×7</text>' + gcClock('gc-red', 214, 12, '01:12', '72:55'),
+
+      // 4. Флаг упал: у проигравшего 00:00, победитель с кубком
+      GC_GROUND + gcPerson('p2', 96, 116, 'win') +
+        '<g class="gc-gold gc-trophy"><path d="M82 46h28v12a14 14 0 0 1-28 0zM96 72v12M86 86h20M82 50h-8a8 8 0 0 0 8 10M110 50h8a8 8 0 0 1-8 10"/></g>' +
+        '<g class="gc-phone"><g class="p2"><rect x="196" y="78" width="96" height="128" rx="13"/></g>' +
+        '<text class="t gc-red gc-zero" x="244" y="152" text-anchor="middle">00:00</text>' +
+        '<g class="gc-red gc-flag">' + gcLine(244, 78, 244, 50) + '<path d="M244 50l22 8l-22 8"/></g></g>' +
+        '<circle class="gc-fill gc-gold gc-confetti" cx="40" cy="60" r="4"/><circle class="gc-fill p1 gc-confetti" cx="150" cy="40" r="4"/><circle class="gc-fill gc-gold gc-confetti" cx="164" cy="96" r="3"/><circle class="gc-fill p1 gc-confetti" cx="34" cy="120" r="3"/>'
+    ];
+  }
+
+  /* Поза для иллюстрации распознавания. lift — на сколько поднялись плечи (0 — вис, 42 — подбородок над перекладиной).
+     Запястья закреплены на перекладине, локоть находится обратной кинематикой (две кости равной длины).
+     Возвращает угол в локте и признак «подбородок выше перекладины» — по ним работает автомат состояний */
+  function gcPose(lift) {
+    var body = document.getElementById('gcBody');
+    if (!body) return null;
+    var BAR = 64, BONE = 24, sy = 111 - lift;
+    body.setAttribute('transform', 'translate(0,' + (-lift) + ')');
+    var angle = 0;
+    [['L', 128, 120, -1], ['R', 156, 164, 1]].forEach(function (a) {
+      var sx = a[1], wx = a[2], dx = wx - sx, dy = BAR - sy;
+      var d = Math.min(Math.hypot(dx, dy), BONE * 2 - 0.01);
+      var h = Math.sqrt(BONE * BONE - d * d / 4);
+      var mx = (sx + wx) / 2, my = (sy + BAR) / 2;
+      var px = -dy / d, py = dx / d;          // перпендикуляр к линии плечо—запястье
+      if (px * a[3] < 0) { px = -px; py = -py; } // локоть — наружу
+      var ex = mx + px * h, ey = my + py * h;
+      var up = document.getElementById('gcU' + a[0]), fo = document.getElementById('gcF' + a[0]);
+      up.setAttribute('x1', sx); up.setAttribute('y1', sy); up.setAttribute('x2', ex); up.setAttribute('y2', ey);
+      fo.setAttribute('x1', ex); fo.setAttribute('y1', ey); fo.setAttribute('x2', wx); fo.setAttribute('y2', BAR);
+      var ke = document.getElementById('gcKE' + a[0]), ks = document.getElementById('gcKS' + a[0]);
+      ke.setAttribute('cx', ex); ke.setAttribute('cy', ey); ks.setAttribute('cx', sx); ks.setAttribute('cy', sy);
+      angle = Math.acos(Math.max(-1, Math.min(1, 1 - d * d / (2 * BONE * BONE)))) * 180 / Math.PI;
+    });
+    var chinY = 93 - lift + 11;
+    var chin = document.getElementById('gcKChin'), hip = document.getElementById('gcKHip');
+    chin.setAttribute('cx', 142); chin.setAttribute('cy', chinY);
+    hip.setAttribute('cx', 142); hip.setAttribute('cy', 160 - lift);
+    document.getElementById('gcAngle').textContent = '∠ ' + Math.round(angle) + '°';
+    return { angle: angle, chinAbove: chinY < BAR - 1 };
+  }
+
+  function renderGymChess() {
+    var G = R.gymchess;
+    if (!G) { dropSection('gymchess'); return; }
+    $('#gcKicker').textContent = G.kicker || '';
+    $('#gcTagline').textContent = G.tagline || '';
+    $('#gcLead').textContent = G.lead || '';
+    var repo = $('#gcRepo');
+    if (safeHref(G.repo)) { repo.href = G.repo; repo.textContent = (G.repoLabel || 'GitHub') + ' ↗'; }
+    else repo.parentNode.remove();
+
+    var art = gcPanels();
+    // где висит реплика и с какой стороны хвостик (он указывает на говорящего)
+    var bubblePos = ['right:5%;top:4%', 'right:3%;top:21%', 'left:14%;top:10%;max-width:46%', 'left:37%;top:5%'];
+    var bubbleTail = ['r', 'r', 'l', 'l'];
+    $('#gcComic').innerHTML = list(G.comic).slice(0, art.length).map(function (p, i) {
+      return '<li class="comic__panel"><div class="comic__frame"><span class="comic__num">' + (i + 1) + '</span>' +
+        (p.bubble ? '<p class="comic__bubble comic__bubble--' + bubbleTail[i] + '" style="' + bubblePos[i] + '">' + esc(p.bubble) + '</p>' : '') +
+        '<svg class="comic__art" viewBox="0 0 320 230" role="img" aria-label="' + esc(p.caption) + '">' + art[i] + '</svg></div>' +
+        '<p class="comic__caption">' + esc(p.caption) + '</p></li>';
+    }).join('');
+
+
+    // «Как засчитываются подтягивания»: слева — как есть сейчас, справа — концепт автоподсчёта (так и подписан)
+    var C = G.counting;
+    if (C && C.now && C.next) {
+      var L = C.next.labels || {};
+      var nowArt = '<svg class="comic__art gc-now" viewBox="0 0 260 190" aria-hidden="true">' +
+        '<g class="p2"><rect x="72" y="8" width="116" height="176" rx="18"/></g>' +
+        '<rect class="gc-active" id="gcNowHi" x="82" y="26" width="96" height="40" rx="10"/>' +
+        '<text class="t p1" id="gcNowA" x="130" y="54" text-anchor="middle">08:12</text>' +
+        '<text class="t p2" id="gcNowB" x="130" y="102" text-anchor="middle">09:30</text>' +
+        '<g id="gcNowBtn"><rect class="gc-btn" x="84" y="132" width="92" height="34" rx="17"/>' +
+        '<text class="gc-btn-t" x="130" y="154" text-anchor="middle">' + esc(C.now.button) + '</text></g>' +
+        '<circle class="p1 gc-thin" id="gcNowTap" cx="130" cy="149" r="16"/></svg>';
+
+      var nextArt = '<div class="gc-pose"><svg class="comic__art gc-pose__cam" viewBox="0 0 284 300" role="img" aria-label="' + esc(C.next.title) + '">' +
+        // «видоискатель» камеры
+        '<g class="soft"><rect x="14" y="14" width="256" height="272" rx="20"/></g>' +
+        '<g class="p2 gc-thin"><path d="M30 50V30H50M234 30H254V50M254 250V270H234M50 270H30V250"/></g>' +
+        '<circle class="gc-fill gc-red" cx="44" cy="44" r="4" id="gcRec"/>' +
+        '<line class="gc-dash gc-ok" x1="24" y1="64" x2="262" y2="64"/>' +
+        '<text class="t t--xs gc-ok" x="258" y="58" text-anchor="end">' + esc(L.bar) + '</text>' +
+        '<g transform="translate(-50,-22) scale(1.35)">' +
+        '<g class="p2"><line x1="70" y1="64" x2="214" y2="64" stroke-width="6"/></g>' +
+        // фигура: плечи/голова/корпус двигаются, локти считаются обратной кинематикой
+        '<g class="p1"><g id="gcBody"><circle cx="142" cy="93" r="11"/><line x1="128" y1="111" x2="156" y2="111"/><line x1="142" y1="111" x2="142" y2="160"/>' +
+        '<line x1="142" y1="160" x2="132" y2="196"/><line x1="142" y1="160" x2="156" y2="192"/></g>' +
+        '<line id="gcUL"/><line id="gcFL"/><line id="gcUR"/><line id="gcFR"/></g>' +
+        '<g id="gcDots"><circle class="kp" r="4.5" cx="120" cy="64"/><circle class="kp" r="4.5" cx="164" cy="64"/>' +
+        '<circle class="kp" r="4.5" id="gcKEL"/><circle class="kp" r="4.5" id="gcKER"/><circle class="kp" r="4.5" id="gcKSL"/><circle class="kp" r="4.5" id="gcKSR"/>' +
+        '<circle class="kp" r="4.5" id="gcKChin"/><circle class="kp" r="4.5" id="gcKHip"/></g></g>' +
+        '<text class="t t--xs p2" id="gcAngle" x="262" y="176" text-anchor="end">∠ 170°</text>' +
+        '<text class="t t--xs gc-muted" x="262" y="190" text-anchor="end">' + esc(L.angle) + '</text>' +
+        '<rect class="gc-pill" id="gcStateBox" x="30" y="236" width="86" height="26" rx="13"/>' +
+        '<text class="gc-pill-t" id="gcState" x="73" y="254" text-anchor="middle">' + esc(L.down) + '</text>' +
+        '<text class="t p1" id="gcReps" x="250" y="258" text-anchor="end">×0</text>' +
+        '<text class="t t--xs gc-muted" x="250" y="236" text-anchor="end">' + esc(L.reps) + '</text>' +
+        // сигнал: высота подбородка во времени и два порога (гистерезис)
+        '</svg><svg class="comic__art gc-pose__sig" viewBox="290 0 346 300" aria-hidden="true">' +
+        '<text class="t t--xs gc-muted" x="300" y="30">' + esc(L.signal) + '</text>' +
+        '<g class="soft gc-thin"><path d="M300 40V220H624"/></g>' +
+        '<line class="gc-dash gc-ok" x1="300" y1="72" x2="624" y2="72"/><text class="t t--xs gc-ok" x="622" y="58" text-anchor="end">' + esc(L.high) + '</text>' +
+        '<line class="gc-dash gc-muted" x1="300" y1="200" x2="624" y2="200"/><text class="t t--xs gc-muted" x="622" y="214" text-anchor="end">' + esc(L.low) + '</text>' +
+        '<path class="p1" id="gcSignal" stroke-width="3"/><g id="gcMarks"></g>' +
+        '<text class="t t--xs" id="gcVerdict" x="462" y="250" text-anchor="middle"></text>' +
+        '<text class="t t--xs gc-muted" x="462" y="278" text-anchor="middle">' + esc(L.rule) + '</text></svg></div>';
+
+      $('#gcCount').innerHTML = '<h3 class="gc-count__title" data-reveal>' + esc(C.title) + '</h3><div class="gc-count__grid">' +
+        '<article class="gc-count__card" data-reveal><span class="gc-badge">' + esc(C.now.badge) + '</span><h4>' + esc(C.now.title) + '</h4><p>' + esc(C.now.text) + '</p><div class="gc-count__art">' + nowArt + '</div></article>' +
+        '<article class="gc-count__card gc-count__card--concept" data-reveal><span class="gc-badge gc-badge--concept">' + esc(C.next.badge) + '</span><h4>' + esc(C.next.title) + '</h4><p>' + esc(C.next.text) + '</p><div class="gc-count__art">' + nextArt + '</div></article></div>';
+      gcPose(0); // статичная поза, если анимаций не будет
+    } else {
+      $('#gcCount').remove();
+    }
+
+    var facts = list(G.facts).map(function (f) {
+      var num = f.text ? '<span>' + esc(f.text) + '</span>' : '<span data-count="' + esc(f.value) + '">' + esc(f.value) + '</span>';
+      return '<div class="stat" data-reveal><dt>' + num + '</dt><dd>' + esc(f.label) + '</dd></div>';
+    }).join('');
+    var ladders = list(G.ladders).map(function (l, i) {
+      var max = Math.max.apply(null, list(l.steps).concat([1]));
+      var bars = list(l.steps).map(function (s) { return '<i style="height:' + Math.round(s / max * 100) + '%"></i>'; }).join('');
+      // первая лесенка общая (ступени по очереди) — полосатая; остальные у каждого свои — одноцветные
+      return '<div class="gc-ladder' + (i ? ' gc-ladder--own' : '') + '" data-reveal><div class="gc-ladder__bars">' + bars + '</div>' +
+        '<p class="gc-ladder__name">' + esc(l.name) + '<span>' + esc(l.pattern) + '</span></p><p class="gc-ladder__note">' + esc(l.note) + '</p></div>';
+    }).join('');
+    var flow = list(G.flow).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('');
+    var potential = list(G.potential).map(function (p) { return '<li data-reveal>' + esc(p) + '</li>'; }).join('');
+
+    $('#gcInfo').innerHTML =
+      (facts ? '<dl class="gc__facts">' + facts + '</dl>' : '') +
+      '<div>' + (ladders ? '<p class="gc__h" data-reveal>' + esc(G.laddersTitle) + '</p><div class="gc__ladders">' + ladders + '</div>' : '') + '</div>' +
+      '<div>' +
+        (flow ? '<p class="gc__h" data-reveal>' + esc(G.flowTitle) + '</p><ol class="gc__flow"><span class="gc__flow-line" aria-hidden="true"></span>' + flow + '</ol>' : '') +
+        (list(G.stack).length ? '<p class="gc__h" data-reveal>' + esc(G.stackTitle) + '</p><ul class="gc__chips">' + chips(G.stack) + '</ul>' : '') +
+        (potential ? '<p class="gc__h" data-reveal>' + esc(G.potentialTitle) + '</p><ul class="gc__potential">' + potential + '</ul>' : '') +
+      '</div>';
+  }
+
   /* ---------- «Айсберг»: город проектов ---------- */
 
   // Детерминированный генератор: город одинаковый при каждой загрузке
@@ -1108,6 +1296,166 @@
         });
       }
 
+      /* GymChess: кадры комикса «прорисовываются тушью» (DrawSVG), затем в них начинается жизнь:
+         игрок подтягивается, часы тикают, капает пот, падает флаг. Вне экрана всё на паузе */
+      var panels = $$('.comic__panel');
+      if (panels.length) {
+        var life = [];
+        var mmss = function (s) { s = Math.max(0, Math.round(s)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+
+        panels.forEach(function (panel, i) {
+          var ink = $$('.comic__art line, .comic__art path, .comic__art circle, .comic__art rect', panel)
+            .filter(function (el) { return !el.classList.contains('gc-fill'); });
+          var tl = gsap.timeline({ delay: (i % 4) * 0.14, scrollTrigger: { trigger: panel, start: 'top 86%', once: true } });
+          tl.from(panel, { autoAlpha: 0, scale: 0.86, rotation: i % 2 ? 3 : -3, y: 34, duration: 0.7, ease: 'back.out(1.5)' });
+          if (X.DrawSVG && ink.length) tl.from(ink, { drawSVG: '0%', duration: 0.75, stagger: 0.03, ease: 'power2.inOut' }, 0.15);
+          var solid = $$('.t, .gc-fill:not(.gc-step)', panel);
+          if (solid.length) tl.from(solid, { autoAlpha: 0, duration: 0.4, stagger: 0.04 }, 0.7);
+          var stepsUp = $$('.gc-step', panel);
+          if (stepsUp.length) tl.from(stepsUp, { scaleY: 0, transformOrigin: '50% 100%', duration: 0.5, stagger: 0.07, ease: 'back.out(1.6)' }, 0.6);
+          var bubble = $('.comic__bubble', panel);
+          if (bubble) tl.from(bubble, { autoAlpha: 0, scale: 0.4, y: 14, duration: 0.5, ease: 'back.out(2.2)' }, 0.95);
+          tl.from($('.comic__caption', panel), { autoAlpha: 0, y: 10, duration: 0.5 }, 0.8);
+          var flag = $('.gc-flag', panel);
+          if (flag) tl.to(flag, { rotation: 96, svgOrigin: '244 78', duration: 0.7, ease: 'bounce.out' }, 1.5);
+        });
+
+        // подтягивание: тело едет вверх, руки «сгибаются» — концы линий привязаны к плечам
+        var hang = $('.gc-hang');
+        if (hang) {
+          var torso = $('.gc-hang__body', hang), arms = $$('.gc-hang__arm', hang), lift = { v: 0 };
+          life.push(gsap.to(lift, {
+            v: -27, duration: 0.55, ease: 'power2.inOut', yoyo: true, repeat: -1, repeatDelay: 0.18,
+            onUpdate: function () {
+              gsap.set(torso, { y: lift.v });
+              arms.forEach(function (a) { a.setAttribute('y2', 90 + lift.v); });
+            }
+          }));
+        }
+        $$('[data-tick]').forEach(function (el) { // «идущие» часы: from:to в секундах, по кругу
+          var range = el.dataset.tick.split(':'), clock = { s: +range[0] };
+          life.push(gsap.to(clock, {
+            s: +range[1], duration: Math.abs(range[0] - range[1]), ease: 'none', repeat: -1,
+            onUpdate: function () { el.textContent = mmss(clock.s); }
+          }));
+        });
+        life.push(gsap.fromTo('.gc-sweat', { y: 0, autoAlpha: 1 }, { y: 18, autoAlpha: 0, duration: 0.9, ease: 'power1.in', stagger: 0.3, repeat: -1 }));
+        life.push(gsap.to('.gc-trophy', { y: -6, duration: 0.7, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+        life.push(gsap.to('.gc-zero', { autoAlpha: 0.2, duration: 0.45, ease: 'steps(1)', yoyo: true, repeat: -1 }));
+        life.push(gsap.to('.gc-phone', { x: 2, duration: 0.05, yoyo: true, repeat: -1, repeatDelay: 0.9 })); // вибрация по таймауту
+        life.push(gsap.to('.gc-confetti', { y: 'random(-10, 10)', x: 'random(-8, 8)', duration: 'random(1.2, 2.2)', ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+        /* Иллюстрации подсчёта. «Сейчас»: тап по кнопке передаёт ход, подсветка часов меняется.
+           Концепт: фигура подтягивается, автомат состояний ВНИЗУ→ВВЕРХУ→ВНИЗУ считает повторы по углу в локте
+           и положению подбородка; каждый четвёртый повтор не дотянут — и честно не засчитывается */
+        if ($('#gcNowBtn')) {
+          var turnA = true;
+          life.push(gsap.timeline({ repeat: -1, repeatDelay: 1.3 })
+            .to('#gcNowBtn', { scale: 0.93, svgOrigin: '130 149', duration: 0.1, yoyo: true, repeat: 1 })
+            .fromTo('#gcNowTap', { scale: 0.5, autoAlpha: 0.9, svgOrigin: '130 149' }, { scale: 2.1, autoAlpha: 0, duration: 0.7, ease: 'power2.out' }, 0)
+            .call(function () { turnA = !turnA; gsap.to('#gcNowHi', { y: turnA ? 0 : 48, duration: 0.35, ease: 'power3.out' }); }, null, 0.12));
+          var nowClocks = { a: 492, b: 570 };
+          life.push(gsap.to({}, {
+            duration: 1, repeat: -1, ease: 'none',
+            onRepeat: function () {
+              if (turnA) nowClocks.a = nowClocks.a > 1 ? nowClocks.a - 1 : 492; else nowClocks.b = nowClocks.b > 1 ? nowClocks.b - 1 : 570;
+              $('#gcNowA').textContent = mmss(nowClocks.a);
+              $('#gcNowB').textContent = mmss(nowClocks.b);
+            }
+          }));
+        }
+
+        if ($('#gcBody')) {
+          var CL = (R.gymchess.counting.next.labels) || {};
+          var lift = { v: 0 }, state = 'down', reps = 0, peak = 0;
+          var samples = [], marks = [];
+          var sigEl = $('#gcSignal'), marksEl = $('#gcMarks'), verdict = $('#gcVerdict');
+          var X0 = 300, X1 = 624, N = 108, STEPX = (X1 - X0) / (N - 1);
+          var yOf = function (v) { return 210 - v * 3.45; }; // 0 → низ графика, 42 → над верхним порогом
+          var flash = function (text, cls) {
+            verdict.textContent = text;
+            verdict.setAttribute('class', 't t--xs ' + cls);
+            gsap.fromTo(verdict, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.3, overwrite: true });
+            gsap.to(verdict, { autoAlpha: 0, duration: 0.4, delay: 1.1 });
+          };
+          var setState = function (s) {
+            state = s;
+            $('#gcState').textContent = s === 'up' ? CL.up : CL.down;
+            gsap.fromTo('#gcStateBox', { scale: 1.12, svgOrigin: '73 249' }, { scale: 1, duration: 0.3, ease: 'back.out(3)' });
+          };
+
+          var seq = gsap.timeline({ repeat: -1, repeatDelay: 0.5 });
+          [42, 42, 42, 27].forEach(function (h) {
+            seq.to(lift, { v: h, duration: 0.75, ease: 'power2.inOut' }).to(lift, { v: 0, duration: 0.65, ease: 'power2.inOut' }, '+=0.12');
+          });
+          life.push(seq);
+
+          var poseTick = function () {
+            if (seq.paused()) return;
+            var p = gcPose(lift.v);
+            peak = Math.max(peak, lift.v);
+            if (state === 'down' && p.chinAbove) setState('up');
+            else if (p.angle > 162 && peak > 8) { // руки выпрямились после движения — повтор закончился
+              if (state === 'up') {
+                reps = reps >= 9 ? 1 : reps + 1;
+                $('#gcReps').textContent = '×' + reps;
+                gsap.fromTo('#gcReps', { scale: 1.5, svgOrigin: '236 250' }, { scale: 1, duration: 0.4, ease: 'back.out(3)' });
+                setState('down');
+                flash(CL.ok, 'gc-ok');
+                marks.push({ age: 0, ok: true });
+              } else {
+                flash(CL.miss, 'gc-red');
+                marks.push({ age: 0, ok: false });
+              }
+              peak = 0;
+            }
+            // лента сигнала: новое значение справа, старые уезжают влево
+            samples.push(lift.v);
+            if (samples.length > N) samples.shift();
+            var d = '';
+            for (var k = 0; k < samples.length; k++) d += (k ? 'L' : 'M') + (X1 - (samples.length - 1 - k) * STEPX).toFixed(1) + ' ' + yOf(samples[k]).toFixed(1);
+            sigEl.setAttribute('d', d);
+            var html = '';
+            marks.forEach(function (m) { m.age++; });
+            marks = marks.filter(function (m) { return m.age < N; });
+            marks.forEach(function (m) {
+              var mx = (X1 - m.age * STEPX).toFixed(1);
+              html += m.ok ? '<circle class="gc-fill gc-ok" cx="' + mx + '" cy="228" r="4"/>'
+                : '<path class="gc-red gc-thin" d="M' + (mx - 4) + ' 224l8 8m0-8l-8 8"/>';
+            });
+            marksEl.innerHTML = html;
+          };
+          gsap.ticker.add(poseTick);
+          cleanups.push(function () { gsap.ticker.remove(poseTick); });
+          life.push(gsap.to('#gcRec', { autoAlpha: 0.15, duration: 0.6, ease: 'steps(1)', yoyo: true, repeat: -1 }));
+        }
+
+        ScrollTrigger.create({
+          trigger: '#gymchess', start: 'top bottom', end: 'bottom top',
+          onToggle: function (self) { life.forEach(function (a) { a.paused(!self.isActive); }); }
+        });
+        if (!ScrollTrigger.isInViewport($('#gymchess'))) life.forEach(function (a) { a.pause(); });
+
+        // инфографика: ступени лесенок вырастают, путь игрока прочерчивается, этапы «загораются» по очереди
+        $$('.gc-ladder').forEach(function (card) {
+          gsap.from($$('.gc-ladder__bars i', card), {
+            scaleY: 0, duration: 0.6, ease: 'back.out(1.7)', stagger: 0.06,
+            scrollTrigger: { trigger: card, start: 'top 88%', once: true }
+          });
+        });
+        if ($('.gc__flow')) {
+          gsap.timeline({ scrollTrigger: { trigger: '.gc__flow', start: 'top 88%', once: true } })
+            .from('.gc__flow-line', { scaleX: 0, duration: 1.2, ease: 'power2.inOut' })
+            .from('.gc__flow li', { autoAlpha: 0, y: 14, scale: 0.7, duration: 0.5, ease: 'back.out(2)', stagger: 0.22 }, 0.05);
+        }
+        var gcChips = $$('.gc__chips .chip');
+        if (gcChips.length) {
+          gsap.from(gcChips, {
+            autoAlpha: 0, scale: 0.5, duration: 0.45, ease: 'back.out(2)', stagger: 0.04,
+            scrollTrigger: { trigger: '.gc__chips', start: 'top 90%', once: true }
+          });
+        }
+      }
+
       /* «3D и видео»: линия пайплайна заполняется по скроллу, активный шаг подсвечивается,
          а «липкий» счётчик слева перелистывает номер в сторону движения */
       var pipe = $('.pipe');
@@ -1415,7 +1763,7 @@
         on(hero, 'pointerleave', function () { weightTo.forEach(function (to) { to(800); }); });
 
         // 3D-наклон карточек за курсором
-        $$('.stat, .skill-group, .lang').forEach(function (el) {
+        $$('.stat, .skill-group, .lang, .gc-ladder').forEach(function (el) {
           gsap.set(el, { transformPerspective: 900 });
           var rx = gsap.quickTo(el, 'rotationX', { duration: 0.5, ease: 'power3' });
           var ry = gsap.quickTo(el, 'rotationY', { duration: 0.5, ease: 'power3' });
@@ -1495,6 +1843,8 @@
   var hasGsap = !!(window.gsap && window.ScrollTrigger && window.SplitText && window.ScrambleTextPlugin && window.ScrollToPlugin);
 
   render();
+  renderGymChess();
+  $$('.section__num').forEach(function (n, i) { n.textContent = pad(i + 1); }); // GymChess мог выпасть — нумерация заново
   renderIceberg(hasGsap && !window.matchMedia(REDUCE).matches);
   var chart = makeChart();
   initTheme();
