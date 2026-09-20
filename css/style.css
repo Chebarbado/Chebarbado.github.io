@@ -354,6 +354,9 @@ button { font: inherit; color: inherit; }
   overflow: hidden;
   background: var(--line);
 }
+.hero__photo { position: relative; }
+.hero__photo canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero__photo.is-3d img { opacity: 0; } /* картинка остаётся для alt, печати и режима без WebGL */
 .hero__photo img {
   display: block;
   width: 108%;
@@ -495,6 +498,8 @@ button { font: inherit; color: inherit; }
   border-block: 1px solid var(--line);
   padding-block: 18px;
 }
+.marquee.is-draggable { cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.marquee.is-draggable:active { cursor: grabbing; }
 .marquee__track {
   display: flex;
   width: max-content;
@@ -1262,6 +1267,18 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
 }
 
 .berg__gauge, .berg__bubbles, .berg__sub { display: none; }
+/* статичный режим (reduced motion / без GSAP): лодка просто стоит в толще воды */
+.berg:not(.is-live) .berg__sub {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--sky) + 34vh);
+  z-index: 2;
+  display: block;
+  width: clamp(120px, 16vw, 220px);
+  height: auto;
+  margin-left: clamp(-110px, -8vw, -60px);
+  overflow: visible;
+}
 .berg.is-live .berg__sub {
   position: absolute;
   left: 0;
@@ -1402,6 +1419,7 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   .hero__device.has-photo { display: block !important; float: right; margin: 0 0 12px 24px; }
   .phone-wrap, .about__photo, .contacts__photo { display: none !important; }
   .hero__photo { width: 120px; aspect-ratio: 1; border-radius: 12px; }
+  .hero__photo canvas { display: none !important; }
   .hero__title { font-size: 2.5rem; }
   .section { padding-block: 20px; }
   .other { position: static !important; min-height: 0; display: block; padding-block: 20px; }

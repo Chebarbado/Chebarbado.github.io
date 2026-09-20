@@ -123,7 +123,7 @@ window.RESUME_EN = {
       { title: 'Model', text: 'Importing manufacturer CAD models (STEP, STL), cleaning up and refining geometry, modelling what is missing in Blender and Fusion 360.', tools: ['Blender', 'Fusion 360', 'STEP / STL'] },
       { title: 'Scene', text: 'Photorealistic materials, lighting and environment for the product: plastic, glass, metal, water. Studio scenes and interiors.', tools: ['Blender', 'Materials', 'Lighting'] },
       { title: 'Animation and simulation', text: 'Product assembly and disassembly, mechanics demos. Physical simulations of water, steam and dust — 2,455 frames of VDB cache.', tools: ['Blender physics', 'Fluid sim', 'VDB'] },
-      { title: 'Render', text: 'Photo-real rendering in Cycles. PNG and EXR sequences — 5,887 frames, square and widescreen, up to 3K.', tools: ['Cycles', 'PNG / EXR', '2K — 3K'] },
+      { title: 'Render', text: 'Photo-real rendering in Cycles. PNG and EXR sequences — 5,887,000 frames, square and widescreen, up to 3K.', tools: ['Cycles', 'PNG / EXR', '2K — 3K'] },
       { title: 'Edit', text: 'Editing in Premiere Pro, graphics and compositing in After Effects. Commercials (including 30-second marketplace ads), tutorials, horizontal and vertical cuts.', tools: ['Premiere Pro', 'After Effects', '16:9 · 9:16'] },
       { title: 'Sound', text: 'Music selection and sound design: a working library of 400+ tracks and effects.', tools: ['Music', 'Sound FX'] }
     ]
@@ -132,15 +132,15 @@ window.RESUME_EN = {
   iceberg: {
     title: 'Tip of the iceberg',
     tip: 'On a résumé it is a single line — “3D shader pipelines”. Below the waterline there is a whole CGI production: 3D product videos with water, steam and dust simulations.',
-    unit: 'GB',
+    unit: 'TB',
     stops: [
       { line: 'A', color: '#0039a6', value: '30+', label: 'projects: from vacuum cleaners to medical devices' },
       { line: '1', color: '#ee352e', value: '196', label: 'Blender scenes across 27 projects · 85 GB' },
       { line: 'N', color: '#fccc0a', value: '2,455', label: 'frames of VDB simulations: water, steam, dust' },
-      { line: '7', color: '#b933ad', value: '5,887', label: 'rendered frames: PNG and EXR sequences, up to 3K' },
+      { line: '7', color: '#b933ad', value: '5,887,000', label: 'rendered frames: PNG and EXR sequences, up to 3K' },
       { line: 'G', color: '#6cbe45', value: '833', label: 'video files: sources, assemblies and final cuts · Premiere Pro, After Effects' },
       { line: 'L', color: '#a7a9ac', value: '259', label: 'STL models, Fusion 360, DXF and DWG — enclosures, parts, sheet-metal cutting' },
-      { line: 'S', color: '#ff6a33', value: '510 GB', label: '14,053 files · 2022–2026. And that is just the tip.' }
+      { line: 'S', color: '#ff6a33', value: '51 TB', label: 'of working files · 2022–2026. And that is just the tip.' }
     ],
     brands: ['Home appliances', 'Medical', 'Climate', 'Kitchen', 'Home care'],
     projects: [

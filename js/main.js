@@ -423,8 +423,12 @@
 
     var STEP = 16, COUNT = 20, H = 90;
     var pts = [], y = 48;
-    function next() {
-      y = Math.max(16, Math.min(72, y + (Math.random() - 0.5) * 32));
+    // input (необязательно): level 0..1 — высота курсора, energy 0..1 — скорость мыши.
+    // Линия тянется к уровню курсора, а шум тем сильнее, чем быстрее двигают мышь. Без input — случайное блуждание
+    function next(input) {
+      if (input && input.level != null) y += (72 - input.level * 56 - y) * 0.5 + (Math.random() - 0.5) * (5 + input.energy * 42);
+      else y += (Math.random() - 0.5) * 32;
+      y = Math.max(12, Math.min(76, y));
       return y;
     }
     function x(i) { return (i - 2) * STEP; }
@@ -442,9 +446,9 @@
     return {
       step: STEP,
       // сдвигает ленту на одну точку и возвращает свежее «показание»
-      shift: function () {
+      shift: function (input) {
         pts.shift();
-        pts.push(next());
+        pts.push(next(input));
         draw();
         return 18 + (H - pts[COUNT - 4]) / H * 14;
       }
@@ -496,6 +500,129 @@
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.lightbox__close')) close();
     });
+  }
+
+  /* ---------- 3D-голова ----------
+     Из одного фото настоящую 3D-модель не получить, поэтому приём такой: фрагментный шейдер считает область головы
+     поверхностью эллипсоида, поворачивает её (yaw/pitch) и для каждого пикселя берёт цвет из той точки фото, которая
+     оказалась бы здесь после поворота. К краю эллипса смещение плавно гаснет — шва с фоном нет. Углы небольшие:
+     дальше ~20° плоское фото уже выдаёт себя. Без WebGL остаётся обычная картинка. */
+  function initHead3D(fig) {
+    var img = $('img', fig);
+    var canvas = document.createElement('canvas');
+    var gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+    if (!img || !gl) return null;
+
+    // Эллипсоид заметно больше самой головы: его кромка должна приходиться на ровный фон. На кромке шейдеру нечем
+    // заполнять «открывшуюся» при повороте полосу, он растягивает соседние пиксели — на однотонной стене этого не видно,
+    // а на ухе или волосах было бы. Центр — примерно на уровне ушей, это ось поворота головы
+    var HEAD = { cx: 0.52, cy: 0.47, rx: 0.41, ry: 0.385 };
+    var FOCUS = { x: 0.5, y: 0.22 }; // как object-position у исходной картинки
+    var ZOOM = 1.06;                  // запас по краям, чтобы смещения не вытаскивали «пустоту»
+    var MAX_YAW = 0.3, MAX_PITCH = 0.17;
+
+    var VS = 'attribute vec2 a; varying vec2 v; void main(){ v = a * 0.5 + 0.5; gl_Position = vec4(a, 0.0, 1.0); }';
+    var FS = [
+      'precision highp float;',
+      'varying vec2 v;',
+      'uniform sampler2D tex;',
+      'uniform vec2 look;', // x — поворот вправо (yaw), y — наклон вниз (pitch), радианы
+      'uniform vec4 fit;',  // xy — масштаб, zw — сдвиг: uv рамки → uv фото (аналог object-fit: cover)
+      'uniform vec2 hc;',
+      'uniform vec2 hr;',
+      'void main(){',
+      '  vec2 uv = fit.zw + vec2(v.x, 1.0 - v.y) * fit.xy;',
+      '  vec2 p = (uv - hc) / hr;',
+      '  float r2 = dot(p, p);',
+      '  vec2 off = vec2(0.0);',
+      '  float shade = 1.0;',
+      '  if (r2 < 1.0) {',
+      '    float z = sqrt(1.0 - r2);',
+      '    float cy = cos(look.x), sy = sin(look.x), cp = cos(look.y), sp = sin(look.y);',
+      '    vec3 q = vec3(p.x, p.y * cp - z * sp, p.y * sp + z * cp);', // обратный наклон
+      '    q = vec3(q.x * cy - q.z * sy, q.y, q.x * sy + q.z * cy);',   // обратный поворот
+      '    float w = smoothstep(0.0, 0.6, z) * smoothstep(-0.1, 0.3, q.z);',
+      '    off = (q.xy - p) * hr * w;',
+      '    shade = 1.0 - 0.22 * w * clamp(-p.x * sy * 2.2, 0.0, 1.0);', // дальняя щека чуть уходит в тень
+      '  }',
+      '  float body = smoothstep(hc.y + hr.y * 0.8, hc.y + hr.y * 1.3, uv.y);',
+      '  off += look * vec2(-0.014, 0.008) * body;', // плечи слегка остаются на месте — параллакс
+      '  vec3 c = texture2D(tex, clamp(uv + off, 0.002, 0.998)).rgb;',
+      '  gl_FragColor = vec4(c * shade, 1.0);',
+      '}'
+    ].join('\n');
+
+    function compile(type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+    }
+    var vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return null;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'a');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var U = { look: gl.getUniformLocation(prog, 'look'), fit: gl.getUniformLocation(prog, 'fit') };
+    gl.uniform2f(gl.getUniformLocation(prog, 'hc'), HEAD.cx, HEAD.cy);
+    gl.uniform2f(gl.getUniformLocation(prog, 'hr'), HEAD.rx, HEAD.ry);
+
+    var ready = false, dirty = true;
+    var cur = { x: 0, y: 0 };
+
+    function resize() {
+      var r = fig.getBoundingClientRect();
+      if (!r.width || !r.height || !img.naturalWidth) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(r.width * dpr);
+      canvas.height = Math.round(r.height * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      var box = r.width / r.height, pic = img.naturalWidth / img.naturalHeight;
+      var sx = box > pic ? 1 : box / pic, sy = box > pic ? pic / box : 1;
+      sx /= ZOOM; sy /= ZOOM;
+      gl.uniform4f(U.fit, sx, sy, (1 - sx) * FOCUS.x, (1 - sy) * FOCUS.y);
+      dirty = true;
+    }
+    function upload() {
+      var tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      ready = true;
+      resize();
+      fig.appendChild(canvas);
+      fig.classList.add('is-3d');
+    }
+    if (img.complete && img.naturalWidth) upload();
+    else img.addEventListener('load', upload, { once: true });
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(fig);
+
+    return {
+      canvas: canvas,
+      maxYaw: MAX_YAW,
+      maxPitch: MAX_PITCH,
+      // плавно ведёт голову к цели; k — доля пути за кадр. Рисует только когда что-то изменилось
+      step: function (tx, ty, k) {
+        var dx = tx - cur.x, dy = ty - cur.y;
+        if (Math.abs(dx) > 0.0004 || Math.abs(dy) > 0.0004) { cur.x += dx * k; cur.y += dy * k; dirty = true; }
+        if (!ready || !dirty) return;
+        dirty = false;
+        gl.uniform2f(U.look, cur.x, cur.y);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+    };
   }
 
   /* ---------- Тема ---------- */
@@ -556,6 +683,7 @@
       if (sessionStorage.getItem('skipIntro')) { introPlayed = true; sessionStorage.removeItem('skipIntro'); }
     } catch (e) {}
     var mm = gsap.matchMedia();
+    var head3d; // undefined — ещё не пробовали, null — WebGL недоступен
 
     mm.add({
       motion: '(prefers-reduced-motion: no-preference)',
@@ -573,6 +701,7 @@
         return;
       }
 
+      var pointer = null; // датчик курсора, заполняется ниже только для мыши
       var cleanups = [];
       function on(el, type, fn) {
         el.addEventListener(type, fn);
@@ -751,7 +880,13 @@
             .to(sub, {
               motionPath: { path: [{ x: -280, y: SH * 0.5 }, { x: SW * 0.22, y: SH * 0.34 }, { x: SW * 0.52, y: SH * 0.5 }, { x: SW * 0.78, y: SH * 0.3 }, { x: SW + 120, y: SH * 0.42 }], curviness: 1.4 },
               ease: 'none', duration: 0.6
-            }, 0.2);
+            }, 0.2)
+            // второй заход: лодка возвращается слева и паркуется внизу, рядом с финальной цифрой
+            .set(sub, { x: -280, y: SH * 0.62 }, 0.82)
+            .to(sub, {
+              motionPath: { path: [{ x: -280, y: SH * 0.62 }, { x: SW * 0.3, y: SH * 0.5 }, { x: Math.max(16, SW - (sub.getBoundingClientRect().width || 160) - 28), y: SH * 0.36 }], curviness: 1.3 },
+              ease: 'power2.out', duration: 0.16
+            }, 0.82);
           ambient.push(gsap.to('.berg__prop', { scaleY: 0.12, duration: 0.09, yoyo: true, repeat: -1, ease: 'sine.inOut', svgOrigin: '10 62' }));
           ambient.push(gsap.to(sub, { rotation: 3, duration: 1.8, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
         }
@@ -799,7 +934,29 @@
       var heroPhoto = $('#heroPhoto');
       if (heroPhoto) {
         intro.fromTo(heroPhoto, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'power4.inOut' }, 'show')
-          .from($('img', heroPhoto), { scale: 1.35, duration: 1.9, ease: 'power3.out' }, 'show');
+          .from(heroPhoto, { scale: 1.12, duration: 1.9, ease: 'power3.out' }, 'show');
+      }
+
+      /* 3D-голова следит за курсором по всей странице. Нет курсора (или тач) — сама плавно осматривается */
+      if (heroPhoto && head3d === undefined) head3d = initHead3D(heroPhoto); // один раз на всё время жизни страницы
+      var gaze = { x: 0, y: 0, tracking: false, idleAt: 0 };
+      if (head3d) {
+        var idle = { x: -0.24, y: 0.03 };
+        gsap.to(idle, { x: 0.24, duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+        gsap.to(idle, { y: -0.05, duration: 2.3, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+        var headVisible = true;
+        ScrollTrigger.create({
+          trigger: '.hero', start: 'top bottom', end: 'bottom top',
+          onToggle: function (self) { headVisible = self.isActive; }
+        });
+        var tickHead = function (time, dt) {
+          if (!headVisible) return;
+          if (gaze.tracking && time - gaze.idleAt > 4) gaze.tracking = false; // курсор замер — возвращаемся к осмотру
+          var k = Math.min(1, (gaze.tracking ? 0.11 : 0.04) * gsap.ticker.deltaRatio());
+          head3d.step(gaze.tracking ? gaze.x : idle.x, gaze.tracking ? gaze.y : idle.y, k);
+        };
+        gsap.ticker.add(tickHead);
+        cleanups.push(function () { gsap.ticker.remove(tickHead); });
       }
 
       // Уход с первого экрана: текст вверх, телефон вниз
@@ -822,8 +979,13 @@
         var feed = gsap.to('#chartGroup', {
           x: -chart.step, duration: 0.9, ease: 'none', repeat: -1,
           onRepeat: function () {
+            // курсор «рулит» графиком: высота — уровень, скорость — шум и темп ленты; без движения всё затухает
+            if (pointer) {
+              gsap.to(feed, { timeScale: 1 + pointer.energy * 3.5, duration: 0.4, overwrite: true });
+              pointer.energy *= 0.55;
+            }
             gsap.to(reading, {
-              v: chart.shift(), duration: 0.8, ease: 'power1.out',
+              v: chart.shift(pointer), duration: 0.8, ease: 'power1.out',
               onUpdate: function () { value.textContent = reading.v.toFixed(1); }
             });
           }
@@ -1143,6 +1305,35 @@
         });
         ScrollTrigger.addEventListener('scrollEnd', settle);
         cleanups.push(function () { ScrollTrigger.removeEventListener('scrollEnd', settle); });
+
+        // Ленту можно тянуть влево-вправо и бросать — мышью и пальцем (вертикальный скролл страницы при этом работает).
+        // Тянем невидимый прокси, а его сдвиг пересчитываем во время петли: так бесшовность сохраняется сама собой
+        if (X.Draggable) {
+          var strip = marquee.parentNode;
+          var proxy = document.createElement('div');
+          var grabTime = 0;
+          var secPerPx = function () { return loop.duration() / (marquee.scrollWidth / 2); };
+          var scrubLoop = function () { loop.totalTime(Math.max(0, grabTime - this.x * secPerPx())); };
+          var stripDrag = X.Draggable.create(proxy, {
+            trigger: strip, type: 'x', inertia: !!X.Inertia,
+            onPress: function () {
+              gsap.killTweensOf(loop);
+              loop.pause();
+              grabTime = loop.totalTime();
+              gsap.set(proxy, { x: 0 });
+              this.update();
+            },
+            onDrag: scrubLoop,
+            onThrowUpdate: scrubLoop,
+            onThrowComplete: function () { loop.timeScale(1).play(); },
+            onRelease: function () {
+              var self = this; // без инерции (или без броска) сразу отпускаем ленту дальше
+              gsap.delayedCall(0.06, function () { if (!self.isThrowing) loop.timeScale(1).play(); });
+            }
+          })[0];
+          strip.classList.add('is-draggable');
+          cleanups.push(function () { stripDrag.kill(); strip.classList.remove('is-draggable'); });
+        }
       }
 
       // Подсветка активного пункта меню (у закреплённой секции ориентируемся на её pin-spacer)
@@ -1172,13 +1363,34 @@
 
       /* Только для мыши: свечение, наклон телефона, курсор-кольцо, «магнитные» кнопки, расшифровка контактов */
       if (c.fine) {
+        // Общий датчик курсора: положение и сглаженная скорость. Его читают 3D-голова и график в телефоне
+        pointer = { level: null, energy: 0, x: 0, y: 0, t: 0 };
+        on(window, 'pointermove', function (e) {
+          var now = performance.now();
+          var speed = pointer.t ? Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) / Math.max(16, now - pointer.t) : 0; // px/мс
+          pointer.energy = Math.min(1, pointer.energy * 0.7 + speed * 0.3);
+          pointer.level = 1 - e.clientY / window.innerHeight;
+          pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = now;
+
+          if (head3d) {
+            var r = heroPhoto.getBoundingClientRect();
+            var nx = (e.clientX - (r.left + r.width / 2)) / (window.innerWidth * 0.5);
+            var ny = (e.clientY - (r.top + r.height * 0.42)) / (window.innerHeight * 0.5);
+            gaze.x = gsap.utils.clamp(-1, 1, nx) * head3d.maxYaw;
+            gaze.y = gsap.utils.clamp(-1, 1, ny) * head3d.maxPitch;
+            gaze.tracking = true;
+            gaze.idleAt = gsap.ticker.time;
+          }
+        });
+
         var hero = $('.hero');
         var glowX = gsap.quickTo('.hero__glow', 'x', { duration: 0.9, ease: 'power3' });
         var glowY = gsap.quickTo('.hero__glow', 'y', { duration: 0.9, ease: 'power3' });
         var tiltX = gsap.quickTo('.phone-tilt', 'rotationY', { duration: 0.8, ease: 'power3' });
         var tiltY = gsap.quickTo('.phone-tilt', 'rotationX', { duration: 0.8, ease: 'power3' });
-        var shotX = heroPhoto ? gsap.quickTo($('img', heroPhoto), 'x', { duration: 1, ease: 'power3' }) : null;
-        var shotY = heroPhoto ? gsap.quickTo($('img', heroPhoto), 'y', { duration: 1, ease: 'power3' }) : null;
+        // плоский параллакс фото нужен только когда нет 3D-головы
+        var shotX = heroPhoto && !head3d ? gsap.quickTo($('img', heroPhoto), 'x', { duration: 1, ease: 'power3' }) : null;
+        var shotY = heroPhoto && !head3d ? gsap.quickTo($('img', heroPhoto), 'y', { duration: 1, ease: 'power3' }) : null;
         on(hero, 'pointermove', function (e) {
           var r = hero.getBoundingClientRect();
           var px = (e.clientX - r.left) / r.width - 0.5;
