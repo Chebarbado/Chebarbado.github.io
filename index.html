@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Резюме</title>
+  <meta name="description" content="Резюме">
+  <meta name="keywords" content="">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // До первой отрисовки: помечаем, что JS есть, и восстанавливаем тему
+    (function () {
+      var d = document.documentElement;
+      d.classList.add('js');
+      try { var t = localStorage.getItem('theme'); if (t) d.dataset.theme = t; } catch (e) {}
+      // после переключения языка страница перезагружается — прелоадер второй раз не показываем
+      try { if (sessionStorage.getItem('skipIntro')) d.classList.add('no-loader'); } catch (e) {}
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23ff5a1f'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Playfair+Display:ital,wght@1,800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="loader" aria-hidden="true">
+    <span class="loader__num" id="loaderNum">0</span>
+    <span class="loader__label" data-i18n="loading">загрузка</span>
+  </div>
+  <div class="cursor" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a class="nav__logo" href="#top" data-bind="initials" aria-label="Наверх" data-i18n-aria="toTop"></a>
+    <nav class="nav__links" aria-label="Разделы" data-i18n-aria="sections">
+      <a href="#about" data-i18n="about">Обо мне</a>
+      <a href="#experience" data-i18n="exp">Опыт</a>
+      <a href="#other" data-i18n="other">Прочее</a>
+      <a href="#cgi" data-i18n="cgi">3D и видео</a>
+      <a href="#iceberg" data-i18n="iceberg">Айсберг</a>
+      <a href="#skills" data-i18n="skills">Навыки</a>
+      <a href="#education" data-i18n="education">Образование</a>
+      <a href="#contacts" data-i18n="contacts">Контакты</a>
+    </nav>
+    <button class="nav__theme nav__lang" id="lang" type="button" aria-label="Switch language"></button>
+    <button class="nav__theme" id="theme" type="button" aria-label="Переключить тему" data-i18n-aria="theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+    </button>
+  </header>
+
+  <div id="smooth-wrapper"><div id="smooth-content">
+  <main id="top">
+    <section class="hero">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="container container--wide hero__inner">
+        <div class="hero__text">
+          <p class="hero__eyebrow" data-hero data-optional><span class="hero__pulse"></span><span data-bind="status"></span></p>
+          <h1 class="hero__title" id="heroTitle" data-bind="name"></h1>
+          <svg class="hero__scribble" viewBox="0 0 420 22" aria-hidden="true"><path d="M3 14 C 48 3, 96 21, 150 11 S 262 3, 318 12 S 392 17, 417 7"/></svg>
+          <p class="hero__role" id="heroRole" data-hero data-bind="role"></p>
+          <p class="hero__lead" data-hero data-bind="lead"></p>
+          <ul class="hero__meta" data-hero id="heroMeta"></ul>
+          <div class="hero__cta" data-hero>
+            <a class="btn btn--primary magnetic" href="#contacts" data-i18n="getInTouch">Связаться</a>
+            <a class="btn magnetic" href="#experience" data-i18n="seeExp">Смотреть опыт</a>
+          </div>
+        </div>
+
+        <!-- Декоративный макет: экран диспетчеризации устройств с «живой» телеметрией -->
+        <div class="hero__device">
+          <figure class="hero__photo" id="heroPhoto" hidden><img alt="" width="853" height="1280"></figure>
+          <div class="phone-wrap" aria-hidden="true">
+          <div class="phone-tilt">
+            <div class="phone">
+              <div class="phone__screen">
+                <div class="phone__bar"><b data-i18n="phoneTitle">Уличные часы</b><span class="phone__live"><i></i>MQTT · online</span></div>
+                <div class="phone__value"><b id="phoneValue">24.6</b><small data-i18n="phoneUnit">°C · телеметрия</small></div>
+                <svg class="phone__chart" viewBox="0 0 240 90" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="currentColor" stop-opacity=".35"/>
+                      <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <g id="chartGroup">
+                    <path id="chartArea" fill="url(#chartFill)"/>
+                    <path id="chartLine" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+                  </g>
+                </svg>
+                <ul class="phone__list">
+                  <li><i></i><span>Узел 01</span><em>12 ms</em></li>
+                  <li><i></i><span>Узел 02</span><em>18 ms</em></li>
+                  <li><i></i><span>Узел 03</span><em>9 ms</em></li>
+                  <li><i></i><span>Узел 04</span><em>23 ms</em></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero__scroll" data-hero aria-hidden="true"><span></span><i data-i18n="scroll">Листайте</i></div>
+    </section>
+
+    <div class="marquee" aria-hidden="true"><div class="marquee__track" id="marquee"></div></div>
+
+    <section class="section" id="about">
+      <div class="container">
+        <header class="section__head"><span class="section__num">01</span><h2 data-i18n="about">Обо мне</h2><span class="section__line"></span></header>
+        <div class="about">
+          <div class="about__text" id="aboutText"></div>
+          <dl class="stats" id="stats"></dl>
+        </div>
+        <figure class="about__photo" id="aboutPhoto" hidden><img alt="" loading="lazy" width="1280" height="853"></figure>
+      </div>
+    </section>
+
+    <section class="section" id="experience">
+      <div class="container">
+        <header class="section__head"><span class="section__num">02</span><h2 data-i18n="expTitle">Опыт работы</h2><span class="section__line"></span></header>
+        <div class="timeline">
+          <div class="timeline__rail" aria-hidden="true"><div class="timeline__bar"></div></div>
+          <div id="jobs"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section other" id="other">
+      <div class="container">
+        <header class="section__head">
+          <span class="section__num">03</span><h2 data-i18n="other">Прочее</h2>
+          <span class="other__count" aria-hidden="true"><b id="otherNow">01</b> / <span id="otherTotal">05</span></span>
+          <span class="section__line"></span>
+        </header>
+      </div>
+      <div class="other__viewport"><div class="other__track" id="otherTrack"></div></div>
+    </section>
+
+    <section class="section" id="cgi">
+      <div class="container">
+        <header class="section__head"><span class="section__num">04</span><h2 data-i18n="cgi">3D и видео</h2><span class="section__line"></span></header>
+        <div class="pipe">
+          <aside class="pipe__aside">
+            <p class="pipe__studio" id="cgiStudio" data-reveal></p>
+            <p class="pipe__intro" id="cgiIntro" data-reveal></p>
+            <div class="pipe__counter" aria-hidden="true"><span class="pipe__num"><b id="pipeNum">01</b></span><span class="pipe__of" id="pipeOf"></span></div>
+          </aside>
+          <div class="pipe__list">
+            <div class="pipe__rail" aria-hidden="true"><div class="pipe__fill"></div></div>
+            <ol class="pipe__steps" id="pipeSteps"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- «Айсберг»: ночной Нью-Йорк над водой, перевёрнутый город проектов под водой. Сцена всегда тёмная -->
+    <section class="berg" id="iceberg">
+      <div class="berg__stage">
+        <div class="berg__world" id="bergWorld">
+          <div class="berg__sky">
+            <div class="berg__stars" id="bergStars" aria-hidden="true"></div>
+            <div class="berg__moon" aria-hidden="true"></div>
+            <header class="berg__mast">
+              <p class="berg__kicker" id="bergKicker"></p>
+              <h2 class="berg__title" id="bergTitle"></h2>
+              <p class="berg__tip" id="bergTip"></p>
+            </header>
+          </div>
+          <div class="berg__sea" aria-hidden="true"></div>
+          <div class="berg__city" id="bergCity" aria-hidden="true"></div>
+          <div class="berg__ticker" aria-hidden="true"><div class="berg__ticker-track" id="bergTicker"></div></div>
+        </div>
+        <div class="berg__bubbles" id="bergBubbles" aria-hidden="true"></div>
+        <!-- Жёлтая подлодка-такси: проплывает по сцене по мере погружения -->
+        <svg class="berg__sub" id="bergSub" viewBox="0 0 220 110" aria-hidden="true">
+          <defs><pattern id="bergChk" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#111"/><rect x="8" y="8" width="8" height="8" fill="#111"/></pattern></defs>
+          <polygon points="198,62 380,8 380,122" fill="rgba(255,240,170,.13)"/>
+          <g class="berg__prop"><rect x="6" y="40" width="9" height="44" rx="4.5" fill="#c99700"/></g>
+          <path d="M120 16 v-13 h13" fill="none" stroke="#ffd21f" stroke-width="5" stroke-linecap="round"/>
+          <rect x="84" y="14" width="50" height="30" rx="9" fill="#ffd21f"/>
+          <rect x="91" y="19" width="36" height="14" rx="3" fill="#111"/>
+          <text x="109" y="30" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="700" text-anchor="middle" fill="#ffd21f">TAXI</text>
+          <rect x="16" y="38" width="184" height="48" rx="24" fill="#ffd21f"/>
+          <rect x="34" y="68" width="148" height="16" fill="url(#bergChk)"/>
+          <g fill="#bfe9ff" stroke="#111" stroke-width="2.5"><circle cx="60" cy="54" r="8"/><circle cx="104" cy="54" r="8"/><circle cx="148" cy="54" r="8"/></g>
+        </svg>
+        <div class="berg__gauge" aria-hidden="true"><span data-i18n="depth">Глубина</span><b id="bergDepth">0</b><i id="bergUnit"></i></div>
+        <ol class="berg__stops" id="bergStops"></ol>
+      </div>
+    </section>
+
+    <section class="section" id="skills">
+      <div class="container">
+        <header class="section__head"><span class="section__num">04</span><h2 data-i18n="skills">Навыки</h2><button class="skills__toggle" id="skillsToggle" type="button" hidden></button><span class="section__line"></span></header>
+        <div class="skills" id="skillGroups"></div>
+        <ul class="skills__cloud" id="skillCloud" hidden></ul>
+        <div class="langs" id="langs"></div>
+      </div>
+    </section>
+
+    <section class="section" id="education">
+      <div class="container">
+        <header class="section__head"><span class="section__num">05</span><h2 data-i18n="education">Образование</h2><span class="section__line"></span></header>
+        <div class="edu" id="edu"></div>
+      </div>
+    </section>
+
+    <section class="section section--contacts" id="contacts">
+      <div class="container">
+        <header class="section__head"><span class="section__num">06</span><h2 data-i18n="contacts">Контакты</h2><span class="section__line"></span></header>
+        <div class="contacts__head">
+          <p class="contacts__title" id="contactsTitle" data-i18n-html="workTogether">Давайте<br>работать вместе</p>
+          <svg class="contacts__arrow" viewBox="0 0 140 120" aria-hidden="true"><path d="M8 10 C 62 4, 122 36, 98 104"/><path d="M74 88 L98 106 L114 80"/></svg>
+          <figure class="contacts__photo" id="contactsPhoto" hidden><div class="contacts__shot"><img alt="" loading="lazy" width="700" height="1050"></div><figcaption></figcaption></figure>
+        </div>
+        <ul class="contacts" id="contactList"></ul>
+        <ul class="hashtags" id="hashtags"></ul>
+        <p class="hashtags__hint" data-i18n="dragHint" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__big" aria-hidden="true"><span id="footerBig"></span></div>
+    <div class="container footer__inner">
+      <span id="copyright"></span>
+      <a id="sourceLink" target="_blank" rel="noopener" hidden data-i18n="source">Оригинал резюме ↗</a>
+    </div>
+  </footer>
+  </div></div>
+
+  <!-- Галерея карточек «Прочее»: наполняется при открытии, видео не грузится заранее -->
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lightboxTitle">
+    <div class="lightbox__inner">
+      <header class="lightbox__head">
+        <h3 class="lightbox__title" id="lightboxTitle"></h3>
+        <button class="lightbox__close" type="button" aria-label="Закрыть" data-i18n-aria="close">✕</button>
+      </header>
+      <p class="lightbox__text"></p>
+      <div class="lightbox__grid"></div>
+    </div>
+  </dialog>
+
+  <noscript><p class="noscript">Для отображения резюме включите JavaScript.</p></noscript>
+
+  <script src="js/vendor/gsap.min.js"></script>
+  <script src="js/vendor/ScrollTrigger.min.js"></script>
+  <script src="js/vendor/ScrollToPlugin.min.js"></script>
+  <script src="js/vendor/SplitText.min.js"></script>
+  <script src="js/vendor/ScrambleTextPlugin.min.js"></script>
+  <script src="js/vendor/ScrollSmoother.min.js"></script>
+  <script src="js/vendor/Flip.min.js"></script>
+  <script src="js/vendor/Draggable.min.js"></script>
+  <script src="js/vendor/InertiaPlugin.min.js"></script>
+  <script src="js/vendor/MotionPathPlugin.min.js"></script>
+  <script src="js/vendor/DrawSVGPlugin.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/data.en.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
