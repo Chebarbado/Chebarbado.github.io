@@ -213,7 +213,7 @@ window.RESUME = {
     // line/color — «маршрут» в стиле нью-йоркского метро
     stops: [
       { line: 'A', color: '#0039a6', value: '30+', label: 'проектов: от пылесосов до медтехники' },
-      { line: '1', color: '#ee352e', value: '196', label: 'сцен Blender в 27 проектах · 85 ГБ' },
+      { line: '1', color: '#ee352e', value: '196', label: 'сцен Blender в 85 проектах · 272 ГБ' },
       { line: 'N', color: '#fccc0a', value: '2 455', label: 'кадров VDB-симуляций: вода, пар, пыль' },
       { line: '7', color: '#b933ad', value: '5 887 000', label: 'кадров рендера: секвенции PNG и EXR, до 3K' },
       { line: 'G', color: '#6cbe45', value: '833', label: 'видеофайла: исходники, сборки и финальные ролики · Premiere Pro, After Effects' },
@@ -249,7 +249,6 @@ window.RESUME = {
     { period: '2006 — 2012', from: 2006, to: 2012, short: 'СПбГУ', title: 'СПбГУ', place: 'фак. ПМ-ПУ', note: 'каф. моделирования экономических систем' }
   ],
   schools: [
-    { period: '2005 — 2006', from: 2005, to: 2006, short: '555', title: 'Школа № 555', place: 'Санкт-Петербург', note: '' },
     { period: '2004 — 2005', from: 2004, to: 2005, short: '239', title: 'Физико-математический лицей № 239', place: 'Санкт-Петербург', note: '' }
   ],
   courses: [],
