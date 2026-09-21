@@ -50,7 +50,7 @@
       skills: 'Навыки', education: 'Образование', contacts: 'Контакты', getInTouch: 'Связаться', seeExp: 'Смотреть опыт',
       scroll: 'Листайте', loading: 'загрузка', depth: 'Глубина', source: 'Оригинал резюме ↗', workTogether: 'Давайте<br>работать вместе',
       phoneTitle: 'Уличные часы', phoneUnit: '°C · телеметрия', phoneRow: 'Часы', toTop: 'Наверх', sections: 'Разделы', theme: 'Переключить тему',
-      eduHigher: 'Высшее образование', eduSchool: 'Школа', eduCourses: 'Курсы и сертификаты', watch: 'Смотреть',
+      eduHigher: 'Образование', eduSchool: 'Школа', eduCourses: 'Курсы и сертификаты', watch: 'Смотреть',
       gallery: 'Фото и видео', close: 'Закрыть', cloud: 'Облаком', groups: 'По группам', dragHint: 'Теги можно хватать и бросать'
     },
     en: {
@@ -58,7 +58,7 @@
       skills: 'Skills', education: 'Education', contacts: 'Contacts', getInTouch: 'Get in touch', seeExp: 'See experience',
       scroll: 'Scroll', loading: 'loading', depth: 'Depth', source: 'Original résumé (RU) ↗', workTogether: 'Let’s<br>work together',
       phoneTitle: 'Street clocks', phoneUnit: '°C · telemetry', phoneRow: 'Clock', toTop: 'Back to top', sections: 'Sections', theme: 'Toggle theme',
-      eduHigher: 'Higher education', eduSchool: 'School', eduCourses: 'Courses and certificates', watch: 'Watch',
+      eduHigher: 'Education', eduSchool: 'School', eduCourses: 'Courses and certificates', watch: 'Watch',
       gallery: 'Photos & video', close: 'Close', cloud: 'As a cloud', groups: 'By group', dragHint: 'Grab the tags and throw them around'
     }
   };
