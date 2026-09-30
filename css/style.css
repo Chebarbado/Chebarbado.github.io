@@ -888,6 +888,20 @@ button { font: inherit; color: inherit; }
 .gc__potential li { position: relative; padding-left: 26px; }
 .gc__potential li::before { content: '↗'; position: absolute; left: 0; font-weight: 800; color: var(--accent); }
 
+/* Тизер GymChess на главной и страница-кейс gymchess.html */
+.gc-teaser__card { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr); gap: clamp(24px, 4vw, 48px); align-items: center; }
+.gc-teaser__text .gc__kicker { margin: 0 0 14px; font-size: .8rem; color: var(--accent); }
+.gc-teaser__text h3 { margin: 14px 0 0; font-size: clamp(1.4rem, 2.6vw, 1.9rem); font-weight: 800; line-height: 1.15; letter-spacing: -.02em; }
+.gc-teaser__about { margin-top: 12px; font-size: .9rem; }
+.gc-teaser__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+
+.case-hero { padding: calc(var(--nav-h) + clamp(56px, 12vw, 140px)) 0 clamp(24px, 4vw, 48px); }
+.case__title { margin-top: 14px; font-size: clamp(2.4rem, 6.5vw, 5rem); font-weight: 800; line-height: 1; letter-spacing: -.045em; }
+.case__lead { max-width: 62ch; margin-top: 22px; font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: var(--muted); }
+.case__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.nav__links .nav__back { color: var(--ink); font-weight: 600; }
+.gc-count--page, .gc__info--page { margin-top: 0; }
+
 /* ---------- Прочее: горизонтальная лента ---------- */
 .other { overflow: hidden; }
 .other__count {
@@ -1560,7 +1574,7 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   .has-photo .phone-wrap { display: none; }
   .hero__photo { width: 112px; aspect-ratio: 1; border-radius: 50%; }
   .contacts__head { grid-template-columns: 1fr; }
-  .gc__intro, .gc__info, .gc-count__grid { grid-template-columns: 1fr; }
+  .gc__intro, .gc__info, .gc-count__grid, .gc-teaser__card { grid-template-columns: 1fr; }
   .gc-pose { grid-template-columns: 1fr; gap: 20px; }
   .gc-pose__cam { max-width: 300px; margin-inline: auto; }
   .gc__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
