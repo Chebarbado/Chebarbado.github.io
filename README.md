@@ -1,6 +1,6 @@
 # Chebarbado.github.io
 
-Сайт-резюме на чистом HTML/CSS/JS с анимациями на [GSAP](https://gsap.com) + ScrollTrigger. Без сборки — GitHub Pages отдаёт файлы как есть.
+Сайт на чистом HTML/CSS/JS с анимациями на [GSAP](https://gsap.com) + ScrollTrigger. Без сборки — GitHub Pages отдаёт файлы как есть.
 
 ## Как менять контент
 
