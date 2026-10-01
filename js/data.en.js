@@ -2,10 +2,10 @@
 // Russian one; for nested objects (photos, cgi, iceberg) missing fields fall back too. Arrays are replaced whole.
 window.RESUME_EN = {
   name: 'Alexandr Vinogradov',
-  role: 'Hardware & Software Engineer · Android Developer · Video Generalist · Motion Designer · 3D Artist',
+  role: 'Hardware & Software Engineer · Android Developer · Motion Designer · 3D Artist',
   status: 'Open to offers',
-  lead: 'Turnkey hardware-software products, Android, Laravel back ends and CGI production. Strongest at Android app optimization: networking, memory leaks, profiling.',
-  meta: ['Saint Petersburg', 'Kotlin / Java', 'Laravel', 'Blender'],
+  lead: 'Turnkey hardware-software products: Android in Kotlin, back ends and ML systems, CGI production. Java is for servers and libraries. On mobile, strongest at optimization: networking, memory leaks, profiling.',
+  meta: ['Saint Petersburg', 'Kotlin', 'ML', 'Blender'],
 
   photos: {
     contacts: { src: 'img/signal.webp', caption: 'Looking for signal — drop me a line' }
@@ -20,7 +20,7 @@ window.RESUME_EN = {
     { value: 7, suffix: '+', label: 'years in software development' },
     { value: 4, suffix: '+', label: 'years in Android' },
     { value: 2, suffix: '', label: 'mobile platforms: Android and iOS' },
-    { text: 'C1', label: 'English' }
+    { value: 51, suffix: ' TB', label: 'CGI archive' }
   ],
 
   experience: [
@@ -47,17 +47,17 @@ window.RESUME_EN = {
         { label: 'Moscow Doverie TV report on street clocks (in Russian) — from 12:20', href: 'https://www.doverie-tv.ru/videos/31259' }
       ],
       media: [
-        { src: 'img/gktime-clock.webp', alt: 'GK Time facade clock', w: 960, h: 720 }
+        { src: 'img/gktime-clock.webp', alt: 'GK Time tower clock', w: 960, h: 511 }
       ]
     },
     {
       group: 'Own projects',
       period: '2022 — present',
-      position: 'Founder · Video Generalist, Motion Designer, 3D Artist',
+      position: 'Founder · Motion Designer, 3D Artist',
       company: 'RNR Studio',
       place: 'CGI & Commercial Production',
       points: [
-        'Full CGI video cycle: from the manufacturer\'s CAD model to an edited video with sound',
+        'Full CGI video cycle: from reverse engineering and an original model to an edited video with sound',
         'Photorealistic rendering in Cycles: materials, lighting, studio scenes',
         'Product assembly and disassembly animation, physical simulations of water, steam and dust',
         'Editing and compositing in Premiere Pro and After Effects: commercials, tutorials, horizontal and vertical cuts',
@@ -114,7 +114,7 @@ window.RESUME_EN = {
         button: 'Pass turn'
       },
       next: {
-        badge: 'Concept · not in the code yet',
+        badge: 'Concept',
         title: 'Camera auto-counting',
         text: 'A phone on a tripod watches the player; a pose-estimation model returns key points: wrists, elbows, shoulders, chin. A rep counts only when the chin rises above the bar and the arms then fully extend. Fall short and it does not count.',
         labels: {
@@ -146,19 +146,13 @@ window.RESUME_EN = {
   },
 
   other: [
-    { title: 'Android and iOS', text: 'Built Android and iOS apps end to end — from development to publishing on Google Play and the App Store.' },
-    { title: '3D and shaders', text: 'Built 3D shader pipelines in C++ and GLSL (game engine).' },
-    { title: 'Photogrammetry / 3DGS', text: 'Built an end-to-end photogrammetry / 3DGS system.' },
-    { title: 'CTF', text: 'I take part in CTF competitions: t-ctf, alfa-ctf, avito-ctf. At avito-ctf our team finished in the top 20.' },
-    { title: 'Hardware', text: 'Hands-on experience building hardware solutions.' },
+    { title: 'Android and iOS', text: 'Built Android and iOS apps end to end — from development to publishing on Google Play and the App Store.', image: 'img/card-mobile.webp' },
+    { title: '3D and shaders', text: 'Built 3D shader pipelines in C++ and GLSL (game engine).', shader: true },
+    { title: 'Photogrammetry / 3DGS', text: 'Built an end-to-end photogrammetry / 3DGS system.', video: 'media/photogrammetry.mp4', image: 'img/card-3dgs.webp' },
+    { title: 'CTF', text: 'I take part in CTF competitions: t-ctf, alfa-ctf, avito-ctf. At avito-ctf our team finished in the top 20.', image: 'img/card-ctf.webp' },
+    { title: 'Hardware', text: 'Hands-on experience building hardware solutions.', image: 'img/card-hardware.webp' },
     { title: 'NeuroSlav neurogadget', text: 'A friendly project together with the Almazov National Medical Research Centre and Tusion Ltd. 2018.',
-      image: 'img/neuroslav-2.webp',
-      gallery: [
-        { video: 'media/neuroslav.mp4', poster: 'img/neuroslav-2.webp' },
-        { src: 'img/neuroslav-1.webp', alt: 'NeuroSlav neurogadget: enclosure with status LED' },
-        { src: 'img/neuroslav-2.webp', alt: 'NeuroSlav neurogadget: electronics unit on the headband' },
-        { src: 'img/neuroslav-3.webp', alt: 'NeuroSlav neurogadget: headband with ear clips' }
-      ] },
+      image: 'img/neuroslav-2.webp', href: 'https://youtu.be/YomLoHad1NE', linkLabel: 'Video' },
     { title: 'Acrobatics', text: 'A hobby. Wall flip from five steps; most rotations in a single-jump somersault — 2.', flip: 2, image: 'img/bridge.webp' },
     { title: 'Spin', text: 'Performed a spin in an L-13 Blaník. 2025.', href: 'https://youtu.be/6_RURLVdiws', linkLabel: 'Watch the video', spin: 3 }
   ],
@@ -169,17 +163,17 @@ window.RESUME_EN = {
     { group: 'Data and networking', items: ['Room', 'SQLDelight', 'Retrofit', 'REST API, Webhooks', 'Firebase'] },
     { group: 'Optimization and quality', items: ['Profiling', 'Memory leak hunting', 'Network optimization', 'Unit tests, Mockk', 'Git, terminal'] },
     { group: 'Web and back end', items: ['Laravel', 'Vue 2', 'TypeScript', 'Vanilla JS', 'React', 'MySQL', 'AJAX'] },
-    { group: '3D, video and hardware', items: ['Blender', 'Cycles', 'C++ / GLSL', 'Photogrammetry / 3DGS', 'Premiere Pro', 'After Effects', 'Fusion 360'] }
+    { group: '3D, video and hardware', items: ['Blender', 'Cycles', 'C++ / GLSL', 'Photogrammetry / 3DGS', 'Premiere Pro', 'After Effects', 'Fusion 360', 'KOMPAS-3D'] }
   ],
 
   cgi: {
-    intro: 'The whole CGI video cycle in one pair of hands: from the manufacturer\'s CAD model to an edited video with sound. Focus: photo-real.',
+    intro: 'The whole CGI video cycle in one pair of hands: from the model and the drawing to an edited video with sound. Focus: photo-real.',
     steps: [
-      { title: 'Model', text: 'Importing manufacturer CAD models (STEP, STL), cleaning up and refining geometry, modelling what is missing in Blender and Fusion 360.', tools: ['Blender', 'Fusion 360', 'STEP / STL'] },
-      { title: 'Scene', text: 'Photorealistic materials, lighting and environment for the product: plastic, glass, metal, water. Studio scenes and interiors.', tools: ['Blender', 'Materials', 'Lighting'] },
+      { title: 'Model', text: 'Reverse engineering of existing models and original models from scratch: cleanup and refinement, with missing geometry built in Blender and Fusion 360. From those models I produce working and assembly drawings to ESKD rules in KOMPAS-3D.', tools: ['Blender', 'Fusion 360', 'KOMPAS-3D'] },
+      { title: 'Scene', text: 'Photorealistic materials, lighting and environment for the product: plastic, glass, metal, water. Shaders are built with Cycles nodes, procedural textures and custom node groups for coatings and glass. Studio scenes and interiors.', tools: ['Cycles', 'Shaders', 'Lighting'] },
       { title: 'Animation and simulation', text: 'Product assembly and disassembly, mechanics demos. Physical simulations of water, steam and dust — 2,455 frames of VDB cache.', tools: ['Blender physics', 'Fluid sim', 'VDB'] },
-      { title: 'Render', text: 'Photo-real rendering in Cycles. PNG and EXR sequences — 5,887,000 frames, square and widescreen, up to 3K.', tools: ['Cycles', 'PNG / EXR', '2K — 3K'] },
-      { title: 'Edit', text: 'Editing in Premiere Pro, graphics and compositing in After Effects. Commercials (including 30-second marketplace ads), tutorials, horizontal and vertical cuts.', tools: ['Premiere Pro', 'After Effects', '16:9 · 9:16'] },
+      { title: 'Render', text: 'Photo-real in Cycles. Frames go out as PNG and OpenEXR sequences, not a video file — 5,887,000 frames, square and widescreen, up to 6K. EXR keeps brightness in float, so blown highlights can be pulled back in comp.', tools: ['Cycles', 'OpenEXR', 'OIDN'] },
+      { title: 'Edit', text: 'Final assembly in Premiere Pro, motion graphics and compositing in After Effects. Commercials and tutorials, delivered horizontal and vertical.', tools: ['Premiere Pro', 'After Effects', '16:9 · 9:16'] },
       { title: 'Sound', text: 'Music selection and sound design: a working library of 400+ tracks and effects.', tools: ['Music', 'Sound FX'] }
     ]
   },
@@ -192,12 +186,12 @@ window.RESUME_EN = {
       { line: 'A', color: '#0039a6', value: '30+', label: 'projects: from vacuum cleaners to medical devices' },
       { line: '1', color: '#ee352e', value: '196', label: 'Blender scenes across 27 projects · 85 GB' },
       { line: 'N', color: '#fccc0a', value: '2,455', label: 'frames of VDB simulations: water, steam, dust' },
-      { line: '7', color: '#b933ad', value: '5,887,000', label: 'rendered frames: PNG and EXR sequences, up to 3K' },
+      { line: '7', color: '#b933ad', value: '5,887,000', label: 'rendered frames: PNG and EXR sequences, up to 6K' },
       { line: 'G', color: '#6cbe45', value: '833', label: 'video files: sources, assemblies and final cuts · Premiere Pro, After Effects' },
       { line: 'L', color: '#a7a9ac', value: '259', label: 'STL models, Fusion 360, DXF and DWG — enclosures, parts, sheet-metal cutting' },
       { line: 'S', color: '#ff6a33', value: '51 TB', label: 'of working files · 2022–2026. And that is just the tip.' }
     ],
-    brands: ['Home appliances', 'Medical', 'Climate', 'Kitchen', 'Home care'],
+    brands: ['Home appliances', 'Medical', 'Climate', 'Water transport', 'Real estate'],
     projects: [
       { name: 'Wet vacuum', gb: 218.33 }, { name: 'Robot vacuum', gb: 53.75 }, { name: 'Range hood', gb: 42.99 },
       { name: 'Steam care', gb: 32.06 }, { name: 'Project 05', gb: 27.47 }, { name: 'Boat drive', gb: 23.54 },
@@ -220,12 +214,12 @@ window.RESUME_EN = {
 
   education: [
     { period: '', title: 'Moscow Technological Institute', place: 'design engineer', note: '' },
-    { period: '2012 — 2014', from: 2012, to: 2014, short: 'UNECON', title: 'St. Petersburg State University of Economics (UNECON)', place: 'Faculty of Economics', note: 'accounting and management' },
-    { period: '2006 — 2012', from: 2006, to: 2012, short: 'SPbU', title: 'St. Petersburg State University (SPbU)', place: 'Faculty of Applied Mathematics and Control Processes', note: 'Dept. of Economic Systems Modelling' }
+    { period: '', title: 'St. Petersburg State University of Economics', place: 'Faculty of Economics', note: 'accounting and management' },
+    { period: '', title: 'St. Petersburg State University', place: 'Faculty of Applied Mathematics and Control Processes', note: 'Dept. of Economic Systems Modelling' }
   ],
   schools: [
-    { period: '2005 — 2006', from: 2005, to: 2006, short: '555', title: 'School No. 555', place: 'Saint Petersburg', note: '' },
-    { period: '2004 — 2005', from: 2004, to: 2005, short: '239', title: 'Physics and Mathematics Lyceum No. 239', place: 'Saint Petersburg', note: '' }
+    { period: '', title: 'School No. 555', place: 'Saint Petersburg', note: '' },
+    { period: '', title: 'Physics and Mathematics Lyceum No. 239', place: 'Saint Petersburg', note: '' }
   ],
 
   contacts: [

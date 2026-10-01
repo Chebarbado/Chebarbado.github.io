@@ -951,7 +951,11 @@ button { font: inherit; color: inherit; }
   letter-spacing: -.02em;
 }
 .other-card p { margin-top: 10px; color: var(--muted); }
-.other-card[data-media] { border-color: transparent; background-size: cover; background-position: 50% 40%; color: #fff; }
+/* Картинка — фоном, видео и шейдер — слоем под затемнением, текст — поверх */
+.other-card[data-media] { overflow: hidden; border-color: transparent; background-color: #111114; background-size: cover; background-position: 50% 40%; color: #fff; }
+.other-card[data-media]::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, .82) 78%); pointer-events: none; }
+.other-card[data-media] > * { position: relative; z-index: 2; }
+.other-card__video, .other-card__gl { position: absolute !important; inset: 0; z-index: 0 !important; display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .other-card[data-media] p { color: rgba(255, 255, 255, .82); }
 .other-card[data-media] .other-card__num { color: rgba(0, 0, 0, .35); -webkit-text-stroke-color: rgba(255, 255, 255, .75); }
 .other-card__link { align-self: flex-start; margin-top: 14px; font-weight: 600; color: var(--accent); }
@@ -1106,6 +1110,7 @@ button.other-card__link { padding: 0; border: 0; background: none; font: inherit
   padding-block: 20px;
   border-bottom: 1px solid var(--line);
 }
+.edu__row--plain { grid-template-columns: 1fr; }
 .edu__period { font-size: .9rem; font-weight: 600; color: var(--muted); padding-top: 3px; }
 .edu__title { font-size: 1.15rem; font-weight: 800; letter-spacing: -.015em; }
 .edu__place { color: var(--muted); }
@@ -1263,12 +1268,11 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   color: #eaf2ff;
 }
 .berg__stage { position: relative; }
-.berg.is-live .berg__stage { height: 100vh; overflow: hidden; }
+.berg.is-live .berg__stage { height: 100vh; overflow: hidden; contain: paint; }
 
 .berg__world {
   position: relative;
   height: calc(var(--sky) + var(--depth));
-  will-change: transform;
 }
 
 .berg__sky {
@@ -1277,12 +1281,12 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   height: var(--sky);
   background: linear-gradient(#040816, #0b1533 60%, #16264f);
 }
-.berg__stars i {
+.berg__starfield {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: #fff;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
 }
 .berg__moon {
   position: absolute;
@@ -1351,17 +1355,25 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
     linear-gradient(to right, var(--b) 0 3px, var(--w) 3px 7px, var(--b) 7px);
   background-size: 100% 14px, 10px 14px;
 }
-.bld__top { bottom: 0; --b: #cfe6fb; --w: #86a9cf; border-radius: 2px 2px 0 0; transform-origin: 50% 100%; }
-.bld__deep { top: 0; --b: #1b4d75; --w: #2c6a99; border-radius: 0 0 3px 3px; transform-origin: 50% 0; }
+.bld__top { bottom: 0; --b: #cfe6fb; --w: #86a9cf; color: #ffd76a; border-radius: 2px 2px 0 0; transform-origin: 50% 100%; }
+.bld__deep { top: 0; --b: #1b4d75; --w: #2c6a99; color: #8fe3ff; border-radius: 0 0 3px 3px; transform-origin: 50% 0; }
 .bld__deep::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(transparent, rgba(1, 5, 11, .55) 60%, rgba(1, 5, 11, .92));
 }
-
-.win { position: absolute; width: 4px; height: 5px; background: #ffd76a; box-shadow: 0 0 6px #ffd76a; }
-.bld__deep .win { background: #8fe3ff; box-shadow: 0 0 6px #8fe3ff; }
+/* Горящие окна — тени одной точки, без отдельного узла на каждое */
+.bld__top::before,
+.bld__deep::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 4px;
+  box-shadow: var(--lights, none);
+}
 
 .bld__crown { position: absolute; background: #cfe6fb; border-radius: 1px 1px 0 0; }
 
@@ -1459,6 +1471,8 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   background-size: 4px 4px;
 }
 .berg__ticker-track { display: flex; align-items: center; width: max-content; height: 100%; }
+.berg.is-awake .berg__ticker-track { animation: berg-marquee 36s linear infinite; }
+@keyframes berg-marquee { to { transform: translateX(-50%); } }
 .berg__ticker-track span {
   padding-right: 36px;
   font: 700 .95rem/1 ui-monospace, Consolas, monospace;
@@ -1513,8 +1527,10 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
 .berg__gauge b { min-width: 3ch; font-size: 1.5rem; text-align: right; font-variant-numeric: tabular-nums; }
 .berg__gauge i { font-style: normal; font-size: .8rem; }
 
-.berg.is-live .berg__bubbles { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.berg.is-live .berg__bubbles { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .berg__bubbles i { position: absolute; bottom: -24px; border: 1px solid rgba(180, 230, 255, .5); border-radius: 50%; }
+.berg.is-awake .berg__bubbles i { animation: berg-rise var(--dur, 9s) linear infinite; animation-delay: var(--delay, 0s); }
+@keyframes berg-rise { to { transform: translate3d(var(--dx, 0px), -110vh, 0); } }
 
 /* Остановки: кружки линий метро + крупная цифра */
 .berg__stops {
@@ -1563,12 +1579,35 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
   position: absolute;
   inset: auto 0 0 0;
   visibility: hidden;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(5, 10, 22, .94);
 }
 
 /* ---------- Адаптив ---------- */
+@media (min-width: 900px) {
+  .berg.is-awake .berg__sign,
+  .berg.is-awake .bld__neon {
+    animation: berg-flicker 7s linear infinite;
+    animation-delay: var(--d, 0s);
+  }
+  .berg.is-awake .berg__prop {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: berg-prop .16s linear infinite;
+  }
+}
+@keyframes berg-flicker {
+  0%, 18%, 100% { opacity: 1; }
+  2% { opacity: .35; }
+  4% { opacity: 1; }
+  7% { opacity: .5; }
+  9% { opacity: 1; }
+}
+@keyframes berg-prop { 50% { transform: scaleY(.15); } }
+
 @media (max-width: 899px) {
+  .berg.is-live .berg__sub { display: none; }
+  .berg__sign { box-shadow: none; text-shadow: none; }
+  .berg__abyss { -webkit-text-stroke-width: 1px; }
   /* на узком экране вместо макета телефона — круглый портрет над именем */
   .hero__device.has-photo { display: flex; justify-content: flex-start; order: -1; }
   .has-photo .phone-wrap { display: none; }
@@ -1604,7 +1643,7 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
 @media (max-width: 560px) {
   .comic { grid-template-columns: 1fr; }
   .comic__bubble { font-size: .85rem; }
-  .berg__moon { right: 10%; top: calc(var(--nav-h) + 30vh); } /* ниже газетной шапки, выше крыш */
+  .berg__moon { right: 10%; top: calc(var(--nav-h) + 22vh); box-shadow: none; }
   .nav { gap: 8px; }
   .nav__links a { padding: 8px 10px; font-size: .85rem; }
   .timeline { padding-left: 28px; }

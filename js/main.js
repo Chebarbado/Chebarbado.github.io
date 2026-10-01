@@ -98,8 +98,8 @@
     rows = list(rows);
     if (!rows.length) return '';
     return '<div><p class="edu__label" data-reveal>' + label + '</p>' + rows.map(function (e) {
-      return '<div class="edu__row" data-reveal>' +
-        '<div class="edu__period">' + esc(e.period) + '</div>' +
+      return '<div class="edu__row' + (e.period ? '' : ' edu__row--plain') + '" data-reveal>' +
+        (e.period ? '<div class="edu__period">' + esc(e.period) + '</div>' : '') +
         '<div><h3 class="edu__title">' + esc(e.title) + '</h3>' +
         '<p class="edu__place">' + [e.place, e.note].filter(Boolean).map(esc).join(', ') + '</p></div>' +
       '</div>';
@@ -228,9 +228,14 @@
       $('#otherTrack').innerHTML = R.other.map(function (o, i) {
         var stunt = o.flip ? ' data-flip="' + esc(o.flip) + '"' : o.spin ? ' data-spin="' + esc(o.spin) + '"' : '';
         var href = safeHref(o.href);
-        // карточка с фото: снимок фоном под затемняющим градиентом
-        if (o.image) stunt += ' data-media style="background-image:linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.82) 78%),url(' + esc(encodeURI(o.image)) + ')"';
-        return '<article class="other-card"' + stunt + '><span class="other-card__num" aria-hidden="true">' + pad(i + 1) + '</span>' +
+        // картинка (или постер видео) — фоном, видео и шейдер — слоями под затемнением
+        if (o.image || o.video || o.shader) {
+          stunt += ' data-media';
+          if (o.image) stunt += ' style="background-image:url(' + esc(encodeURI(o.image)) + ')"';
+        }
+        var layers = (o.video ? '<video class="other-card__video" muted loop playsinline preload="none" data-src="' + esc(encodeURI(o.video)) + '" aria-hidden="true"></video>' : '') +
+          (o.shader ? '<canvas class="other-card__gl" aria-hidden="true"></canvas>' : '');
+        return '<article class="other-card"' + stunt + '>' + layers + '<span class="other-card__num" aria-hidden="true">' + pad(i + 1) + '</span>' +
           '<h3>' + esc(o.title) + '</h3><p>' + esc(o.text) + '</p>' +
           (href ? '<a class="other-card__link" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(o.linkLabel || t('watch')) + ' ↗</a>' : '') +
           (o.spin ? '<svg class="other-card__glider" viewBox="0 0 64 28" aria-hidden="true"><path fill="currentColor" d="M2 14 L50 12 Q62 14 50 16 Z M29 14 L23 0 L29 0 L37 14 L29 28 L23 28 Z M5 14 L2 8 L6 8 L9 14 L6 20 L2 20 Z"/></svg>' : '') +
@@ -536,14 +541,16 @@
 
   var NEON = ['#ff4fa3', '#ffd23f', '#39e6ff', '#9dff6a'];
 
-  // Горящие окна ставятся точно в ячейки CSS-сетки окон (шаг 10×14, окно с отступом 3×6)
-  function windows(cols, rows, max, share) {
-    var n = Math.min(max, Math.round(cols * rows * share));
-    var html = '';
+  // Огни — тени одного псевдоэлемента, а не сотни узлов. Иначе каждое окно со своим твином
+  // заставляет город перерисовываться на каждом кадре скролла
+  function lightShadows(cols, rows, max) {
+    var n = Math.min(max, Math.max(1, cols) * Math.max(1, rows));
+    if (n < 1) return 'none';
+    var parts = [];
     for (var i = 0; i < n; i++) {
-      html += '<i class="win" style="left:' + (3 + 10 * Math.floor(rnd() * cols)) + 'px;top:' + (6 + 14 * Math.floor(rnd() * rows)) + 'px"></i>';
+      parts.push((3 + 10 * Math.floor(rnd() * Math.max(1, cols))) + 'px ' + (6 + 14 * Math.floor(rnd() * Math.max(1, rows))) + 'px 0 0 currentColor');
     }
-    return html;
+    return parts.join(',');
   }
 
   function renderIceberg(live) {
@@ -551,9 +558,12 @@
     var sec = $('#iceberg');
     if (!B || !list(B.projects).length) { dropSection('iceberg'); return; }
     if (!sec) return;
+    seed = 11;
 
-    // В «живой» сцене море глубокое (в него ныряет камера), в статичной — компактное
-    var DEPTH = live ? 190 : 110;
+    var W = root.clientWidth;
+    var lite = W < 900;
+    // На узком экране море короче: меньше слой для композитора и короче закрепление
+    var DEPTH = !live ? 100 : lite ? 118 : 160;
     sec.style.setProperty('--depth', DEPTH + 'vh');
 
     $('#bergKicker').textContent = B.kicker || '';
@@ -561,10 +571,10 @@
     $('#bergTip').textContent = B.tip || '';
     $('#bergUnit').textContent = B.unit || '';
 
-    var W = root.clientWidth;
     var VH = window.innerHeight / 100;
     var small = W < 600;
-    var n = Math.max(10, Math.min(B.projects.length, Math.floor(W * 0.92 / (small ? 22 : 30))));
+    var maxB = small ? 11 : lite ? 16 : B.projects.length;
+    var n = Math.max(8, Math.min(B.projects.length, maxB, Math.floor(W * 0.92 / (small ? 30 : 34))));
     var items = B.projects.slice().sort(function (a, b) { return b.gb - a.gb; }).slice(0, n);
     var max = items[0].gb || 1;
 
@@ -598,13 +608,15 @@
       } else if (wpx >= 18 && s.rank % 3 === 1) {
         roof = '<i class="bld__tank" style="bottom:calc(' + top + 'vh + 4px)"></i>';
       }
-      var neon = wpx >= 24 && deep >= 40
-        ? '<span class="bld__neon" style="--neon:' + NEON[i % NEON.length] + '">' + esc(s.p.name) + '</span>'
+      var neon = !lite && wpx >= 24 && deep >= 40
+        ? '<span class="bld__neon" style="--neon:' + NEON[i % NEON.length] + ';--d:' + (rnd() * 5).toFixed(2) + 's">' + esc(s.p.name) + '</span>'
         : '';
+      var topLights = lightShadows(cols, Math.max(1, Math.floor(top * VH / 14)), lite ? 2 : 4);
+      var deepLights = lightShadows(cols, Math.max(1, Math.floor(deep * VH / 14)), lite ? 2 : 5);
 
       return '<div class="bld" style="left:' + left + '%;width:' + (w - GAP) + '%">' +
-        '<div class="bld__top" style="height:' + top + 'vh">' + windows(cols, Math.floor(top * VH / 14), 6, 0.12) + '</div>' + roof +
-        '<div class="bld__deep" style="height:' + deep + 'vh">' + neon + windows(cols, Math.floor(deep * VH / 14), 9, 0.04) + '</div>' +
+        '<div class="bld__top" style="height:' + top + 'vh;--lights:' + topLights + ';--d:' + (rnd() * 3).toFixed(2) + 's"></div>' + roof +
+        '<div class="bld__deep" style="height:' + deep + 'vh;--lights:' + deepLights + '">' + neon + '</div>' +
       '</div>';
     }).join('');
 
@@ -612,22 +624,27 @@
     var signX = small ? [4, 46, 8, 40, 22] : [6, 66, 12, 60, 34];
     var signs = list(B.brands).slice(0, signX.length).map(function (b, i) {
       return '<div class="berg__sign" style="left:' + signX[i] + '%;top:' + (DEPTH * (0.14 + i * 0.16)) + 'vh;--neon:' + NEON[i % NEON.length] +
-        ';rotate:' + (i % 2 ? 3 : -4) + 'deg">' + esc(b) + '</div>';
+        ';--d:' + (rnd() * 5).toFixed(2) + 's;rotate:' + (i % 2 ? 3 : -4) + 'deg">' + esc(b) + '</div>';
     }).join('');
     // Гигантская контурная цифра в бездне — рисуется под зданиями
     var abyss = B.total ? '<div class="berg__abyss" style="top:' + (DEPTH - 40) + 'vh">' + esc(B.total) + ' ' + esc(B.unit || '') + '</div>' : '';
     $('#bergCity').innerHTML = abyss + city + signs;
 
-    var stars = '';
-    for (var i = 0; i < 60; i++) {
-      stars += '<i style="left:' + (rnd() * 100) + '%;top:' + (rnd() * 72) + '%;opacity:' + (0.3 + rnd() * 0.7) + '"></i>';
+    // Все звёзды — тени одной точки, а не 60 отдельных узлов с твинами
+    var skyW = W, skyH = window.innerHeight * 0.7;
+    var starN = lite ? 16 : 32;
+    var starShadows = [];
+    for (var i = 0; i < starN; i++) {
+      starShadows.push(Math.round(rnd() * skyW) + 'px ' + Math.round(rnd() * skyH) + 'px 0 ' + (rnd() > 0.82 ? '0.6px' : '0') + ' rgba(255,255,255,' + (0.35 + rnd() * 0.65).toFixed(2) + ')');
     }
-    $('#bergStars').innerHTML = stars;
+    $('#bergStars').innerHTML = '<i class="berg__starfield" style="box-shadow:' + starShadows.join(',') + '"></i>';
 
     var bubbles = '';
-    for (var j = 0; j < 14; j++) {
-      var d = 4 + Math.round(rnd() * 10);
-      bubbles += '<i style="left:' + (rnd() * 100) + '%;width:' + d + 'px;height:' + d + 'px"></i>';
+    var bubbleN = lite ? 5 : 8;
+    for (var j = 0; j < bubbleN; j++) {
+      var d = 4 + Math.round(rnd() * 8);
+      bubbles += '<i style="left:' + (rnd() * 100).toFixed(1) + '%;width:' + d + 'px;height:' + d + 'px;--dx:' +
+        Math.round((rnd() - 0.5) * 48) + 'px;--dur:' + (7 + rnd() * 6).toFixed(1) + 's;--delay:' + (rnd() * 8).toFixed(1) + 's"></i>';
     }
     $('#bergBubbles').innerHTML = bubbles;
 
@@ -732,6 +749,69 @@
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.lightbox__close')) close();
     });
+  }
+
+  /* ---------- Шейдер-фон карточки «3D и шейдеры» ----------
+     Три капли металла сливаются и расходятся (raymarching + smooth min), френель и блик.
+     Рисуется в полразрешения и только пока карточка на экране. Без WebGL карточка остаётся тёмной */
+  function initShaderCard(canvas) {
+    var gl = canvas.getContext('webgl', { antialias: false, alpha: false });
+    if (!gl) return null;
+    var FS = [
+      '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+      'precision highp float;',
+      '#else',
+      'precision mediump float;',
+      '#endif',
+      'uniform vec2 iResolution; uniform float iTime;',
+      'float sm(float a, float b, float k) { float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0); return mix(b, a, h) - k * h * (1.0 - h); }',
+      'float map(vec3 p) { float t = iTime * 0.6;',
+      '  float d = sm(length(p - vec3(sin(t) * 0.9, cos(t * 1.3) * 0.5, 0.0)) - 0.7, length(p - vec3(cos(t * 0.8) * 0.8, sin(t * 0.9) * 0.7, sin(t) * 0.4)) - 0.55, 0.6);',
+      '  return sm(d, length(p - vec3(sin(t * 1.7) * 0.6, -cos(t * 0.7) * 0.8, cos(t * 1.1) * 0.5)) - 0.45, 0.6); }',
+      'vec3 nrm(vec3 p) { vec2 e = vec2(0.003, 0.0); return normalize(vec3(map(p + e.xyy) - map(p - e.xyy), map(p + e.yxy) - map(p - e.yxy), map(p + e.yyx) - map(p - e.yyx))); }',
+      'void main() { vec2 uv = (gl_FragCoord.xy * 2.0 - iResolution) / iResolution.y;',
+      '  vec3 ro = vec3(0.0, 0.0, 3.2), rd = normalize(vec3(uv, -1.8));',
+      '  float t = 0.0, d = 0.0; for (int i = 0; i < 56; i++) { d = map(ro + rd * t); if (d < 0.003 || t > 8.0) break; t += d * 0.9; }',
+      '  vec3 col = mix(vec3(0.05, 0.05, 0.08), vec3(0.16, 0.07, 0.04), uv.y * 0.5 + 0.5);',
+      '  if (t < 8.0) { vec3 p = ro + rd * t, n = nrm(p), l = normalize(vec3(0.6, 0.8, 0.7));',
+      '    float dif = max(dot(n, l), 0.0), fre = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);',
+      '    vec3 base = mix(vec3(1.0, 0.42, 0.2), vec3(0.2, 0.6, 1.0), 0.5 + 0.5 * sin(p.x * 2.0 + iTime));',
+      '    col = base * (0.15 + 0.85 * dif) + fre * vec3(1.0, 0.6, 0.3) + pow(max(dot(reflect(-l, n), -rd), 0.0), 24.0) * 0.6; }',
+      '  gl_FragColor = vec4(pow(max(col, 0.0), vec3(0.9)), 1.0); }'
+    ].join('\n');
+    function compile(type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { gl.deleteShader(sh); return null; }
+      return sh;
+    }
+    var vs = compile(gl.VERTEX_SHADER, 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }');
+    var fs = compile(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return null;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'a');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var uRes = gl.getUniformLocation(prog, 'iResolution');
+    var uTime = gl.getUniformLocation(prog, 'iTime');
+    return {
+      draw: function (time) {
+        var w = Math.max(1, Math.round(canvas.clientWidth * 0.5));
+        var h = Math.max(1, Math.round(canvas.clientHeight * 0.5));
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+        gl.uniform2f(uRes, w, h);
+        gl.uniform1f(uTime, time);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+    };
   }
 
   /* ---------- 3D-голова ----------
@@ -930,6 +1010,11 @@
         if (loader) loader.remove();
         gsap.set('[data-reveal], [data-hero]', { autoAlpha: 1 });
         $$('.job').forEach(function (j) { j.classList.add('is-active'); });
+        $$('.other-card__video').forEach(function (v) { v.remove(); });
+        $$('.other-card__gl').forEach(function (cv) {
+          var sh = initShaderCard(cv);
+          if (sh) sh.draw(1.2); else cv.remove();
+        });
         return;
       }
 
@@ -979,6 +1064,7 @@
       /* Горизонтальная лента «Прочее». Создаётся первой: закрепление меняет высоту страницы,
          и все триггеры ниже должны считаться уже с её учётом */
       var track = $('#otherTrack');
+      var slide = null;
       if (track && c.wide) {
         var travel = function () { return Math.max(0, track.scrollWidth - root.clientWidth); };
         var total = track.children.length;
@@ -990,7 +1076,7 @@
           if (!way) return [0];
           return cards.map(function (c) { return Math.min(1, (c.offsetLeft - cards[0].offsetLeft) / way); }).concat([1]);
         };
-        var slide = gsap.to(track, {
+        slide = gsap.to(track, {
           x: function () { return -travel(); },
           ease: 'none',
           scrollTrigger: {
@@ -1038,17 +1124,69 @@
         });
       }
 
+      /* Видео играет и шейдер рисуется, только пока карточка видна: и в горизонтальной ленте, и сама секция на экране.
+         onToggle во время ScrollTrigger.create трогать экземпляр нельзя — его ещё нет, поэтому первое состояние снимаем после создания */
+      if (track && ($$('.other-card__video', track).length || $$('.other-card__gl', track).length)) {
+        var syncs = [];
+        function syncAll() { syncs.forEach(function (fn) { fn(); }); }
+        var sectionST = ScrollTrigger.create({
+          trigger: '#other',
+          start: 'top bottom',
+          end: 'bottom top',
+          onToggle: function () { syncAll(); }
+        });
+        function watchCard(card, cb) {
+          var opts = { trigger: card };
+          var st, ready = false;
+          opts.onToggle = function () { if (ready) sync(); };
+          if (c.wide && slide) {
+            opts.containerAnimation = slide;
+            opts.start = 'left 105%';
+            opts.end = 'right -5%';
+          } else {
+            opts.start = 'top 105%';
+            opts.end = 'bottom -5%';
+          }
+          st = ScrollTrigger.create(opts);
+          function sync() { cb(!!(st.isActive && sectionST.isActive)); }
+          ready = true;
+          syncs.push(sync);
+        }
+        $$('.other-card__video', track).forEach(function (v) {
+          watchCard(v.parentNode, function (on) {
+            if (on) {
+              if (!v.getAttribute('src')) v.src = v.dataset.src;
+              var p = v.play();
+              if (p && p.catch) p.catch(function () {});
+            } else v.pause();
+          });
+        });
+        $$('.other-card__gl', track).forEach(function (cv) {
+          var sh = initShaderCard(cv);
+          if (!sh) { cv.remove(); return; }
+          var tick = function () { sh.draw(gsap.ticker.time); };
+          watchCard(cv.parentNode, function (on) {
+            gsap.ticker.remove(tick);
+            if (on) gsap.ticker.add(tick);
+          });
+          cleanups.push(function () { gsap.ticker.remove(tick); });
+        });
+        syncAll();
+      }
+
       /* «Айсберг»: закреплённая сцена. Скролл = погружение: мир едет вверх, лёд нарастает вниз,
          счётчик глубины считает гигабайты, остановки метро сменяют друг друга */
       var berg = $('#iceberg');
       if (berg) {
         berg.classList.add('is-live');
-        cleanups.push(function () { berg.classList.remove('is-live'); });
+        cleanups.push(function () { berg.classList.remove('is-live', 'is-awake'); });
 
+        var lite = root.clientWidth < 900;
         var world = $('#bergWorld');
         var stage = $('.berg__stage', berg);
         var dive = function () { return Math.max(0, world.offsetHeight - stage.clientHeight); };
         var depth = { v: 0 };
+        var depthShown = -1;
         var depthEl = $('#bergDepth');
         var stops = $$('.berg__stop', berg);
         var step = 0.8 / Math.max(1, stops.length);
@@ -1057,19 +1195,23 @@
           scrollTrigger: {
             trigger: berg,
             start: 'top top',
-            end: function () { return '+=' + dive() * 1.5; },
+            end: function () { return '+=' + dive() * (lite ? 1 : 1.2); },
             pin: true,
-            scrub: 0.6,
+            scrub: lite ? true : 0.35,
             invalidateOnRefresh: true
           }
         });
+        descent.to(world, { y: function () { return -dive(); }, ease: 'none', duration: 0.92 }, 0);
+        // Рост подводной части на каждом здании — лишняя работа на узком экране: там мир только едет вверх
+        if (!lite) descent.from('.bld__deep', { scaleY: 0, ease: 'power2.out', duration: 0.3, stagger: { each: 0.004, from: 'center' } }, 0);
         descent
-          .to(world, { y: function () { return -dive(); }, ease: 'none', duration: 0.92 }, 0)
-          .from('.bld__deep', { scaleY: 0, ease: 'power2.out', duration: 0.3, stagger: { each: 0.004, from: 'center' } }, 0)
           .fromTo('.berg__gauge, .berg__bubbles', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.04 }, 0.04)
           .to(depth, {
             v: (R.iceberg && R.iceberg.total) || 0, ease: 'none', duration: 0.88,
-            onUpdate: function () { depthEl.textContent = Math.round(depth.v); }
+            onUpdate: function () {
+              var next = Math.round(depth.v);
+              if (next !== depthShown) { depthShown = next; depthEl.textContent = next; }
+            }
           }, 0.04);
         stops.forEach(function (stop, i) {
           var at = 0.1 + i * step;
@@ -1078,34 +1220,20 @@
         });
         descent.to({}, { duration: 0.001 }, 1); // добиваем длину таймлайна до 1: последняя остановка остаётся на экране
 
-        // Выход на сцену ещё до закрепления: заголовок по буквам, скайлайн вырастает от центра, всходит луна
-        gsap.timeline({ scrollTrigger: { trigger: berg, start: 'top 70%', once: true } })
-          .from('.berg__moon', { y: 90, autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0)
+        // Выход на сцену ещё до закрепления: заголовок по буквам, всходит луна.
+        // На узком экране здания не масштабируем по одному — это рывок в начале сцены
+        var enter = gsap.timeline({ scrollTrigger: { trigger: berg, start: 'top 70%', once: true } });
+        enter.from('.berg__moon', { y: 90, autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0)
           .from(splitChars('#bergTitle'), { yPercent: 120, duration: 0.9, stagger: 0.025, ease: 'power4.out' }, 0)
-          .from('.berg__kicker, .berg__tip', { autoAlpha: 0, y: 16, duration: 0.7, stagger: 0.12, ease: 'power2.out' }, 0.2)
-          .from('.bld__top', { scaleY: 0, duration: 0.9, ease: 'back.out(1.3)', stagger: { each: 0.025, from: 'center' } }, 0.1)
-          .from('.bld__crown, .bld__tank', { autoAlpha: 0, y: 10, duration: 0.5, stagger: 0.03 }, 0.9);
+          .from('.berg__kicker, .berg__tip', { autoAlpha: 0, y: 16, duration: 0.7, stagger: 0.12, ease: 'power2.out' }, 0.2);
+        if (!lite) {
+          enter.from('.bld__top', { scaleY: 0, duration: 0.9, ease: 'back.out(1.3)', stagger: { each: 0.025, from: 'center' } }, 0.1)
+            .from('.bld__crown, .bld__tank', { autoAlpha: 0, y: 10, duration: 0.5, stagger: 0.03 }, 0.9);
+        }
 
-        // Фоновая жизнь города: окна, звёзды, неон, LED-строка, пузыри. Вне экрана всё на паузе
-        var ambient = [
-          gsap.to($$('.win', berg), { opacity: 0.12, duration: 'random(0.5, 1.8)', delay: 'random(0, 3)', repeat: -1, yoyo: true, ease: 'sine.inOut' }),
-          gsap.to('#bergStars i', { opacity: 0.1, duration: 'random(0.8, 2.4)', delay: 'random(0, 3)', repeat: -1, yoyo: true, ease: 'sine.inOut' }),
-          gsap.to('#bergTicker', { xPercent: -50, ease: 'none', duration: 36, repeat: -1 }),
-          gsap.fromTo('#bergBubbles i', { y: 0 }, {
-            y: function () { return -(stage.clientHeight + 60); },
-            x: 'random(-40, 40)', duration: 'random(5, 10)', delay: 'random(0, 8)', repeat: -1, ease: 'none'
-          })
-        ];
-        $$('.bld__neon, .berg__sign', berg).forEach(function (sign) {
-          ambient.push(gsap.timeline({ repeat: -1, repeatDelay: gsap.utils.random(2, 6), delay: gsap.utils.random(0, 4) })
-            .to(sign, { opacity: 0.25, duration: 0.05 })
-            .to(sign, { opacity: 1, duration: 0.05 })
-            .to(sign, { opacity: 0.4, duration: 0.04 }, '+=0.08')
-            .to(sign, { opacity: 1, duration: 0.12 }));
-        });
-        // Подлодка-такси проплывает через сцену по кривой (MotionPath), привязанной к погружению
+        // Подлодка на узком экране скрыта: MotionPath на каждом кадре скролла там не окупается
         var sub = $('#bergSub');
-        if (sub && X.MotionPath) {
+        if (!lite && sub && X.MotionPath) {
           var SW = stage.clientWidth, SH = stage.clientHeight;
           gsap.set(sub, { x: -280, y: SH * 0.5 });
           descent.fromTo(sub, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.02 }, 0.2)
@@ -1113,23 +1241,21 @@
               motionPath: { path: [{ x: -280, y: SH * 0.5 }, { x: SW * 0.22, y: SH * 0.34 }, { x: SW * 0.52, y: SH * 0.5 }, { x: SW * 0.78, y: SH * 0.3 }, { x: SW + 120, y: SH * 0.42 }], curviness: 1.4 },
               ease: 'none', duration: 0.6
             }, 0.2)
-            // второй заход: лодка возвращается слева и паркуется внизу, рядом с финальной цифрой
             .set(sub, { x: -280, y: SH * 0.62 }, 0.82)
             .to(sub, {
               motionPath: { path: [{ x: -280, y: SH * 0.62 }, { x: SW * 0.3, y: SH * 0.5 }, { x: Math.max(16, SW - (sub.getBoundingClientRect().width || 160) - 28), y: SH * 0.36 }], curviness: 1.3 },
               ease: 'power2.out', duration: 0.16
             }, 0.82);
-          ambient.push(gsap.to('.berg__prop', { scaleY: 0.12, duration: 0.09, yoyo: true, repeat: -1, ease: 'sine.inOut', svgOrigin: '10 62' }));
-          ambient.push(gsap.to(sub, { rotation: 3, duration: 1.8, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
         }
 
+        // Бегущая строка, пузыри и неон — CSS, и только пока секция на экране
         ScrollTrigger.create({
-          trigger: berg.parentNode, // pin-spacer: его границы учитывают длину закрепления
+          trigger: berg.parentNode,
           start: 'top bottom',
           end: 'bottom top',
-          onToggle: function (self) { ambient.forEach(function (a) { a.paused(!self.isActive); }); }
+          onToggle: function (self) { berg.classList.toggle('is-awake', self.isActive); }
         });
-        if (!ScrollTrigger.isInViewport(berg)) ambient.forEach(function (a) { a.pause(); });
+        if (ScrollTrigger.isInViewport(berg)) berg.classList.add('is-awake');
       }
 
       /* Вступление: счётчик прелоадера → шторка → имя по буквам → «расшифровка» должности */
