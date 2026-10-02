@@ -157,6 +157,18 @@ window.RESUME_EN = {
     { title: 'Spin', text: 'Performed a spin in an L-13 Blaník. 2025.', href: 'https://youtu.be/6_RURLVdiws', linkLabel: 'Watch the video', spin: 3 }
   ],
 
+  bench: {
+    kicker: 'Productivity',
+    title: 'Cursor and Claude',
+    text: 'Day-to-day work runs in Cursor with Claude: the editor, the model, connected MCP servers and agent skills.',
+    items: [
+      { name: 'Cursor', role: 'editor' },
+      { name: 'Claude', role: 'model' },
+      { name: 'MCP', role: 'servers' },
+      { name: 'Skills', role: 'agent skills' }
+    ]
+  },
+
   skills: [
     { group: 'Languages and platform', items: ['Kotlin', 'Java', 'Android SDK'] },
     { group: 'Architecture and async', items: ['Clean Architecture, MVP, MVVM', 'DI, Dagger2', 'Coroutines', 'RxJava, Kotlin Flow'] },

@@ -262,6 +262,23 @@
       dropSection('cgi');
     }
 
+    var bench = R.bench;
+    var benchEl = $('#bench');
+    if (benchEl && bench && list(bench.items).length) {
+      benchEl.hidden = false;
+      benchEl.innerHTML =
+        '<div class="bench__copy"><p class="bench__kicker">' + esc(bench.kicker || '') + '</p>' +
+        '<h3 class="bench__title">' + esc(bench.title || '') + '</h3>' +
+        (bench.text ? '<p class="bench__text">' + esc(bench.text) + '</p>' : '') + '</div>' +
+        '<ol class="bench__rail">' + bench.items.map(function (item, i) {
+          return '<li class="bench__node' + (i < 2 ? ' is-lead' : '') + '"><span class="bench__dot" aria-hidden="true"></span>' +
+            '<span class="bench__name">' + esc(item.name) + '</span>' +
+            '<span class="bench__role">' + esc(item.role) + '</span></li>';
+        }).join('') + '</ol>';
+    } else if (benchEl) {
+      benchEl.remove();
+    }
+
     if (list(R.skills).length || list(R.languages).length) {
       $('#skillGroups').innerHTML = list(R.skills).map(function (g) {
         return '<div class="skill-group"><h3>' + esc(g.group) + '</h3><ul>' + chips(g.items) + '</ul></div>';

@@ -178,6 +178,19 @@ window.RESUME = {
     { title: 'Штопор', text: 'Выполнил штопор на L-13 Blaník. 2025.', href: 'https://youtu.be/6_RURLVdiws', linkLabel: 'Смотреть видео', spin: 3 }
   ],
 
+  // Рабочий контур: редактор, модель, MCP и навыки агента
+  bench: {
+    kicker: 'Продуктивность',
+    title: 'Cursor и Claude',
+    text: 'Повседневную работу веду в Cursor с Claude: редактор, модель, подключённые MCP и навыки агента.',
+    items: [
+      { name: 'Cursor', role: 'редактор' },
+      { name: 'Claude', role: 'модель' },
+      { name: 'MCP', role: 'серверы' },
+      { name: 'Skills', role: 'навыки агента' }
+    ]
+  },
+
   skills: [
     { group: 'Языки и платформа', items: ['Kotlin', 'Java', 'Android SDK'] },
     { group: 'Архитектура и асинхронность', items: ['Clean Architecture, MVP, MVVM', 'DI, Dagger2', 'Coroutines', 'RxJava, Kotlin Flow'] },
