@@ -53,7 +53,7 @@
       scroll: 'Листайте', loading: 'загрузка', depth: 'Глубина', source: 'Оригинал резюме ↗', workTogether: 'Давайте<br>работать вместе',
       phoneTitle: 'Уличные часы', phoneUnit: '°C · телеметрия', phoneRow: 'Часы', toTop: 'Наверх', sections: 'Разделы', theme: 'Переключить тему',
       eduHigher: 'Образование', eduSchool: 'Школа', eduCourses: 'Курсы и сертификаты', watch: 'Смотреть',
-      back: '← Резюме', gcComic: 'Комикс', gcCount: 'Подсчёт', gcInfo: 'В цифрах',
+      back: '← Резюме', gcFilm: 'Ролик', gcComic: 'Комикс', gcCount: 'Подсчёт', gcInfo: 'В цифрах',
       gallery: 'Фото и видео', close: 'Закрыть', cloud: 'Облаком', groups: 'По группам', dragHint: 'Теги можно хватать и бросать'
     },
     en: {
@@ -62,7 +62,7 @@
       scroll: 'Scroll', loading: 'loading', depth: 'Depth', source: 'Original résumé (RU) ↗', workTogether: 'Let’s<br>work together',
       phoneTitle: 'Street clocks', phoneUnit: '°C · telemetry', phoneRow: 'Clock', toTop: 'Back to top', sections: 'Sections', theme: 'Toggle theme',
       eduHigher: 'Education', eduSchool: 'School', eduCourses: 'Courses and certificates', watch: 'Watch',
-      back: '← Résumé', gcComic: 'Comic', gcCount: 'Counting', gcInfo: 'In numbers',
+      back: '← Résumé', gcFilm: 'Promo', gcComic: 'Comic', gcCount: 'Counting', gcInfo: 'In numbers',
       gallery: 'Photos & video', close: 'Close', cloud: 'As a cloud', groups: 'By group', dragHint: 'Grab the tags and throw them around'
     }
   };
@@ -453,6 +453,11 @@
 
   }
 
+  function youtubeId(url) {
+    var m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|watch\?v=))([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+
   function renderGymChess() {
     var G = R.gymchess;
     var C = G && G.counting;
@@ -488,6 +493,17 @@
     if (safeHref(G.repo)) { repo.href = G.repo; repo.textContent = (G.repoLabel || 'GitHub') + ' ↗'; }
     else repo.remove();
     $('#footerBig').textContent = 'GymChess';
+    var film = $('#gc-film');
+    var yt = youtubeId(G.promo);
+    if (film && yt) {
+      film.hidden = false;
+      var filmTitle = $('#gcFilmTitle');
+      if (G.promoTitle) filmTitle.textContent = G.promoTitle;
+      else filmTitle.remove();
+      $('#gcFilm').innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yt + '" title="' + esc(G.promoTitle || 'GymChess') + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>';
+    } else if (film) {
+      film.remove();
+    }
     $('#gcComicTitle').textContent = G.comicTitle || '';
     $('#gcCountTitle').textContent = (C && C.title) || '';
     $('#gcInfoTitle').textContent = G.infoTitle || '';

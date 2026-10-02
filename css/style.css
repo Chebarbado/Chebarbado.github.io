@@ -896,6 +896,24 @@ button { font: inherit; color: inherit; }
 .gc-teaser__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
 
 .case-hero { padding: calc(var(--nav-h) + clamp(56px, 12vw, 140px)) 0 clamp(24px, 4vw, 48px); }
+.gc-film { padding: 8px 0 clamp(56px, 8vw, 96px); }
+.gc-film__cap {
+  margin-bottom: 14px;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.gc-film__frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #111114;
+}
+.gc-film__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .case__title { margin-top: 14px; font-size: clamp(2.4rem, 6.5vw, 5rem); font-weight: 800; line-height: 1; letter-spacing: -.045em; }
 .case__lead { max-width: 62ch; margin-top: 22px; font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: var(--muted); }
 .case__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
@@ -1728,7 +1746,7 @@ a.contact:hover .contact__arrow { transform: translate(4px, -4px); }
 /* ---------- Печать: чистое резюме без анимаций ---------- */
 @media print {
   :root { --bg: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #ccc; --line-strong: #999; }
-  .berg, .lightbox, .other-card__link, .skills__toggle, .hashtags__hint, .hero__scribble, .contacts__arrow, .other-card__glider, .loader, .cursor, .nav, .progress, .marquee, .hero__glow, .hero__scroll, .hero__cta, .hero__device,
+  .berg, .lightbox, .gc-film, .other-card__link, .skills__toggle, .hashtags__hint, .hero__scribble, .contacts__arrow, .other-card__glider, .loader, .cursor, .nav, .progress, .marquee, .hero__glow, .hero__scroll, .hero__cta, .hero__device,
   .other__count, .contacts__title, .footer__big, .footer a { display: none !important; }
   main *, .footer * {
     visibility: visible !important;

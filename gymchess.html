@@ -49,6 +49,7 @@
     <a class="nav__logo" href="./" data-bind="initials" aria-label="Резюме" data-i18n-aria="back"></a>
     <nav class="nav__links" aria-label="Разделы" data-i18n-aria="sections">
       <a class="nav__back" href="./" data-i18n="back">← Резюме</a>
+      <a href="#gc-film" data-i18n="gcFilm">Ролик</a>
       <a href="#gc-comic" data-i18n="gcComic">Комикс</a>
       <a href="#gc-count" data-i18n="gcCount">Подсчёт</a>
       <a href="#gc-info" data-i18n="gcInfo">В цифрах</a>
@@ -71,6 +72,13 @@
           <a class="btn btn--primary magnetic" id="gcRepo" target="_blank" rel="noopener"></a>
           <a class="btn magnetic" href="./" data-i18n="back">← Резюме</a>
         </div>
+      </div>
+    </section>
+
+    <section class="gc-film" id="gc-film" hidden>
+      <div class="container">
+        <p class="gc-film__cap" id="gcFilmTitle"></p>
+        <div class="gc-film__frame" id="gcFilm"></div>
       </div>
     </section>
 

@@ -95,6 +95,7 @@ window.RESUME_EN = {
     tagline: 'A pull-up ladder with a chess clock',
     lead: 'A promising game app built on a social sports mechanic. A workout becomes a turn-based duel: 2–4 people, one phone, a clock for each. Your clock only runs on your turn, so rest is a resource you pay for with time.',
     repoLabel: 'Code on GitHub',
+    promoTitle: 'Promo',
     caseLabel: 'Full project description',
     teaser: 'From the GymChess case — a pull-up ladder with a chess clock. Comic, mechanics and infographic live on a separate page.',
     comicTitle: 'How it plays',
